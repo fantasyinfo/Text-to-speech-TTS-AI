@@ -1,0 +1,2069 @@
+{
+  "categories": [
+    {
+      "id": "happiness",
+      "name": "1. Happiness & Positive Emotions",
+      "icon": "😊",
+      "emotions": [
+        [
+          "happy",
+          "Happy",
+          "General happiness, pleasant tone"
+        ],
+        [
+          "joyful",
+          "Joyful",
+          "Strong happiness, energetic voice"
+        ],
+        [
+          "excited",
+          "Excited",
+          "High energy, enthusiasm"
+        ],
+        [
+          "delighted",
+          "Delighted",
+          "Extremely pleased, cheerful"
+        ],
+        [
+          "amused",
+          "Amused",
+          "Finding something funny"
+        ],
+        [
+          "playful",
+          "Playful",
+          "Light-hearted, teasing"
+        ],
+        [
+          "proud",
+          "Proud",
+          "Confidence in achievement"
+        ],
+        [
+          "hopeful",
+          "Hopeful",
+          "Positive expectation"
+        ],
+        [
+          "grateful",
+          "Grateful",
+          "Thankfulness, heartfelt warmth"
+        ],
+        [
+          "relieved",
+          "Relieved",
+          "Stress disappearing, relaxed"
+        ]
+      ]
+    },
+    {
+      "id": "sadness",
+      "name": "2. Sadness & Emotional Pain",
+      "icon": "😢",
+      "emotions": [
+        [
+          "sad",
+          "Sad",
+          "General sadness"
+        ],
+        [
+          "heartbroken",
+          "Heartbroken",
+          "Deep emotional pain"
+        ],
+        [
+          "disappointed",
+          "Disappointed",
+          "Expectations not fulfilled"
+        ],
+        [
+          "lonely",
+          "Lonely",
+          "Feeling isolated"
+        ],
+        [
+          "hurt",
+          "Hurt",
+          "Emotionally wounded"
+        ],
+        [
+          "melancholic",
+          "Melancholic",
+          "Quiet, thoughtful sadness"
+        ],
+        [
+          "grief_stricken",
+          "Grief-stricken",
+          "Deep loss and sorrow"
+        ],
+        [
+          "tearful",
+          "Tearful",
+          "Voice close to crying"
+        ],
+        [
+          "regretful",
+          "Regretful",
+          "Feeling sorry about something"
+        ]
+      ]
+    },
+    {
+      "id": "anger",
+      "name": "3. Anger & Frustration",
+      "icon": "😡",
+      "emotions": [
+        [
+          "angry",
+          "Angry",
+          "General anger"
+        ],
+        [
+          "furious",
+          "Furious",
+          "Extreme anger"
+        ],
+        [
+          "irritated",
+          "Irritated",
+          "Mild annoyance"
+        ],
+        [
+          "frustrated",
+          "Frustrated",
+          "Unable to achieve something"
+        ],
+        [
+          "annoyed",
+          "Annoyed",
+          "Bothered by something"
+        ],
+        [
+          "resentful",
+          "Resentful",
+          "Holding onto anger"
+        ],
+        [
+          "sarcastic",
+          "Sarcastic",
+          "Mocking or ironic delivery"
+        ],
+        [
+          "indignant",
+          "Indignant",
+          "Anger over perceived injustice"
+        ]
+      ]
+    },
+    {
+      "id": "fear",
+      "name": "4. Fear, Anxiety & Nervousness",
+      "icon": "😨",
+      "emotions": [
+        [
+          "afraid",
+          "Afraid",
+          "General fear"
+        ],
+        [
+          "terrified",
+          "Terrified",
+          "Extreme fear"
+        ],
+        [
+          "scared",
+          "Scared",
+          "Sudden or immediate fear"
+        ],
+        [
+          "anxious",
+          "Anxious",
+          "Worried about what might happen"
+        ],
+        [
+          "nervous",
+          "Nervous",
+          "Uneasy or uncomfortable"
+        ],
+        [
+          "panicked",
+          "Panicked",
+          "Extreme sudden fear"
+        ],
+        [
+          "suspicious",
+          "Suspicious",
+          "Distrustful, doubtful"
+        ],
+        [
+          "insecure",
+          "Insecure",
+          "Lacking confidence"
+        ],
+        [
+          "cautious",
+          "Cautious",
+          "Careful, alert delivery"
+        ]
+      ]
+    },
+    {
+      "id": "surprise",
+      "name": "5. Surprise & Shock",
+      "icon": "😲",
+      "emotions": [
+        [
+          "surprised",
+          "Surprised",
+          "Unexpected discovery"
+        ],
+        [
+          "shocked",
+          "Shocked",
+          "Strong unexpected reaction"
+        ],
+        [
+          "astonished",
+          "Astonished",
+          "Extremely surprised"
+        ],
+        [
+          "amazed",
+          "Amazed",
+          "Positive surprise"
+        ],
+        [
+          "stunned",
+          "Stunned",
+          "Temporarily speechless"
+        ],
+        [
+          "confused",
+          "Confused",
+          "Unable to understand"
+        ],
+        [
+          "bewildered",
+          "Bewildered",
+          "Completely puzzled"
+        ]
+      ]
+    },
+    {
+      "id": "love",
+      "name": "6. Love, Care & Affection",
+      "icon": "❤️",
+      "emotions": [
+        [
+          "loving",
+          "Loving",
+          "Deep affection"
+        ],
+        [
+          "affectionate",
+          "Affectionate",
+          "Warm and caring"
+        ],
+        [
+          "compassionate",
+          "Compassionate",
+          "Understanding someone's pain"
+        ],
+        [
+          "empathetic",
+          "Empathetic",
+          "Emotionally connecting with someone"
+        ],
+        [
+          "caring",
+          "Caring",
+          "Showing concern"
+        ],
+        [
+          "tender",
+          "Tender",
+          "Gentle emotional expression"
+        ],
+        [
+          "reassuring",
+          "Reassuring",
+          "Making someone feel safe"
+        ],
+        [
+          "nostalgic",
+          "Nostalgic",
+          "Emotional memories of the past"
+        ]
+      ]
+    },
+    {
+      "id": "confidence",
+      "name": "7. Confidence & Authority",
+      "icon": "🦁",
+      "emotions": [
+        [
+          "confident",
+          "Confident",
+          "Self-assured"
+        ],
+        [
+          "assertive",
+          "Assertive",
+          "Firm and clear"
+        ],
+        [
+          "authoritative",
+          "Authoritative",
+          "Commanding, authoritative"
+        ],
+        [
+          "determined",
+          "Determined",
+          "Strong commitment"
+        ],
+        [
+          "motivational",
+          "Motivational",
+          "Encouraging action"
+        ],
+        [
+          "persuasive",
+          "Persuasive",
+          "Convincing someone"
+        ],
+        [
+          "dominant",
+          "Dominant",
+          "Strong, controlling presence"
+        ],
+        [
+          "defiant",
+          "Defiant",
+          "Refusing to give in"
+        ]
+      ]
+    },
+    {
+      "id": "curiosity",
+      "name": "8. Curiosity & Interest",
+      "icon": "🔍",
+      "emotions": [
+        [
+          "curious",
+          "Curious",
+          "Wanting to know something"
+        ],
+        [
+          "intrigued",
+          "Intrigued",
+          "Deeply interested"
+        ],
+        [
+          "interested",
+          "Interested",
+          "Attentive and engaged"
+        ],
+        [
+          "inquisitive",
+          "Inquisitive",
+          "Asking questions eagerly"
+        ],
+        [
+          "wondering",
+          "Wondering",
+          "Thinking about something"
+        ],
+        [
+          "skeptical",
+          "Skeptical",
+          "Questioning whether something is true"
+        ],
+        [
+          "investigative",
+          "Investigative",
+          "Searching for answers"
+        ]
+      ]
+    },
+    {
+      "id": "calmness",
+      "name": "9. Calmness & Peace",
+      "icon": "🧘",
+      "emotions": [
+        [
+          "calm",
+          "Calm",
+          "Relaxed and composed"
+        ],
+        [
+          "peaceful",
+          "Peaceful",
+          "Deep inner peace"
+        ],
+        [
+          "relaxed",
+          "Relaxed",
+          "Casual and comfortable"
+        ],
+        [
+          "serene",
+          "Serene",
+          "Quiet, gentle composure"
+        ],
+        [
+          "patient",
+          "Patient",
+          "Not rushing"
+        ],
+        [
+          "content",
+          "Content",
+          "Satisfied with the present"
+        ],
+        [
+          "meditative",
+          "Meditative",
+          "Slow, reflective delivery"
+        ]
+      ]
+    },
+    {
+      "id": "humor",
+      "name": "10. Humor & Comedy",
+      "icon": "😂",
+      "emotions": [
+        [
+          "funny",
+          "Funny",
+          "Naturally humorous"
+        ],
+        [
+          "amused_laughter",
+          "Amused Laughter",
+          "Laughing at something"
+        ],
+        [
+          "chuckling",
+          "Chuckling",
+          "Light, controlled laughter"
+        ],
+        [
+          "giggling",
+          "Giggling",
+          "Small playful laughter"
+        ],
+        [
+          "sarcastic_humor",
+          "Sarcastic Humor",
+          "Ironic or mocking humor"
+        ],
+        [
+          "teasing",
+          "Teasing",
+          "Playfully making fun"
+        ],
+        [
+          "witty",
+          "Witty",
+          "Clever, humorous delivery"
+        ],
+        [
+          "deadpan",
+          "Deadpan",
+          "Intentionally emotionless comedy"
+        ]
+      ]
+    },
+    {
+      "id": "disgust",
+      "name": "11. Disgust & Disapproval",
+      "icon": "🤢",
+      "emotions": [
+        [
+          "disgusted",
+          "Disgusted",
+          "Strong dislike"
+        ],
+        [
+          "repulsed",
+          "Repulsed",
+          "Extreme disgust"
+        ],
+        [
+          "unimpressed",
+          "Unimpressed",
+          "Not impressed"
+        ],
+        [
+          "disapproving",
+          "Disapproving",
+          "Expressing disagreement"
+        ],
+        [
+          "contemptuous",
+          "Contemptuous",
+          "Showing disrespect"
+        ],
+        [
+          "dismissive",
+          "Dismissive",
+          "Treating something as unimportant"
+        ]
+      ]
+    },
+    {
+      "id": "shame",
+      "name": "12. Shame, Guilt & Embarrassment",
+      "icon": "😔",
+      "emotions": [
+        [
+          "guilty",
+          "Guilty",
+          "Feeling responsible for wrongdoing"
+        ],
+        [
+          "ashamed",
+          "Ashamed",
+          "Deep embarrassment about oneself"
+        ],
+        [
+          "embarrassed",
+          "Embarrassed",
+          "Social discomfort"
+        ],
+        [
+          "regretful_shame",
+          "Regretful Shame",
+          "Wishing something had been different"
+        ],
+        [
+          "remorseful",
+          "Remorseful",
+          "Deep regret for causing harm"
+        ],
+        [
+          "humiliated",
+          "Humiliated",
+          "Feeling publicly degraded"
+        ]
+      ]
+    },
+    {
+      "id": "determination",
+      "name": "13. Determination, Courage & Resilience",
+      "icon": "🛡️",
+      "emotions": [
+        [
+          "brave",
+          "Brave",
+          "Facing fear confidently"
+        ],
+        [
+          "courageous",
+          "Courageous",
+          "Showing strong courage"
+        ],
+        [
+          "resilient",
+          "Resilient",
+          "Recovering from difficulties"
+        ],
+        [
+          "persistent",
+          "Persistent",
+          "Continuing despite obstacles"
+        ],
+        [
+          "passionate",
+          "Passionate",
+          "Strong emotional commitment"
+        ],
+        [
+          "inspired",
+          "Inspired",
+          "Feeling motivated by something"
+        ],
+        [
+          "empowered",
+          "Empowered",
+          "Feeling capable and strong"
+        ]
+      ]
+    },
+    {
+      "id": "confusion",
+      "name": "14. Confusion, Doubt & Indecision",
+      "icon": "❓",
+      "emotions": [
+        [
+          "doubtful",
+          "Doubtful",
+          "Not fully convinced"
+        ],
+        [
+          "hesitant",
+          "Hesitant",
+          "Unsure about proceeding"
+        ],
+        [
+          "uncertain",
+          "Uncertain",
+          "Lacking clarity"
+        ],
+        [
+          "indecisive",
+          "Indecisive",
+          "Unable to make a decision"
+        ],
+        [
+          "puzzled",
+          "Puzzled",
+          "Trying to understand"
+        ],
+        [
+          "distrustful",
+          "Distrustful",
+          "Having difficulty trusting"
+        ]
+      ]
+    },
+    {
+      "id": "storytelling",
+      "name": "15. Storytelling & Communication Expressions",
+      "icon": "🎙️",
+      "emotions": [
+        [
+          "storytelling",
+          "Storytelling",
+          "Natural conversational narration"
+        ],
+        [
+          "dramatic",
+          "Dramatic",
+          "Expressive, theatrical delivery"
+        ],
+        [
+          "suspenseful",
+          "Suspenseful",
+          "Building tension and anticipation"
+        ],
+        [
+          "whispering",
+          "Whispering",
+          "Very soft, low-volume voice"
+        ],
+        [
+          "shouting",
+          "Shouting",
+          "Loud, forceful voice"
+        ],
+        [
+          "crying",
+          "Crying",
+          "Broken voice with emotional distress"
+        ],
+        [
+          "laughing",
+          "Laughing",
+          "Spoken with laughter"
+        ],
+        [
+          "serious",
+          "Serious",
+          "Focused, no-nonsense delivery"
+        ],
+        [
+          "emotional",
+          "Emotional",
+          "Strong heartfelt expression"
+        ],
+        [
+          "secretive",
+          "Secretive",
+          "Quiet, as if sharing a secret"
+        ],
+        [
+          "urgent",
+          "Urgent",
+          "Fast, immediate, pressing delivery"
+        ],
+        [
+          "explanatory",
+          "Explanatory",
+          "Clear teaching and explanation"
+        ],
+        [
+          "conversational",
+          "Conversational",
+          "Everyday natural speech"
+        ],
+        [
+          "reflective",
+          "Reflective",
+          "Thoughtful, looking back"
+        ],
+        [
+          "inspirational",
+          "Inspirational",
+          "Uplifting and encouraging"
+        ]
+      ]
+    }
+  ],
+  "emotions": {
+    "neutral": {
+      "key": "neutral",
+      "title": "Neutral / Storyteller",
+      "meaning": "Natural conversational narration",
+      "category_id": "storytelling",
+      "category_name": "15. Storytelling & Communication Expressions",
+      "badge": "Neutral / Storyteller (कथावाचक)",
+      "tip": "🎯 **Vocal Coach Tip**: Sit tall with relaxed shoulders. Keep your pitch in a comfortable mid-range with a calm, steady cadence.",
+      "hindi": "पुराने जमाने की बात है, जब घने जंगलों के बीच एक शांत नदी बहती थी। वहां के लोग कहते थे कि उस नदी में एक जादू है।",
+      "english": "Deep within the ancient mountains, where the mist never seemed to clear, an old traveler began his long journey."
+    },
+    "whisper": {
+      "key": "whisper",
+      "title": "Whispering",
+      "meaning": "Very soft, low-volume voice",
+      "category_id": "storytelling",
+      "category_name": "15. Storytelling & Communication Expressions",
+      "badge": "Whispering (फुसफुसाहट)",
+      "tip": "🎯 **Vocal Tip**: Drop volume to an intimate stage whisper with breathy dynamics.",
+      "hindi": "बिल्कुल चुप रहो... कोई है जो अँधेरे में हमारे पीछे खड़ा है...",
+      "english": "Be completely quiet... someone is walking down the hall..."
+    },
+    "happy": {
+      "key": "happy",
+      "title": "Happy",
+      "meaning": "General happiness, pleasant tone",
+      "category_id": "happiness",
+      "category_name": "1. Happiness & Positive Emotions",
+      "badge": "Happy — General happiness, pleasant tone",
+      "tip": "🎯 **Vocal Tip**: Express 'Happy' (General happiness, pleasant tone). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Happy का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of happy."
+    },
+    "joyful": {
+      "key": "joyful",
+      "title": "Joyful",
+      "meaning": "Strong happiness, energetic voice",
+      "category_id": "happiness",
+      "category_name": "1. Happiness & Positive Emotions",
+      "badge": "Joyful — Strong happiness, energetic voice",
+      "tip": "🎯 **Vocal Tip**: Express 'Joyful' (Strong happiness, energetic voice). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Joyful का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of joyful."
+    },
+    "excited": {
+      "key": "excited",
+      "title": "Excited",
+      "meaning": "High energy, enthusiasm",
+      "category_id": "happiness",
+      "category_name": "1. Happiness & Positive Emotions",
+      "badge": "Excited — High energy, enthusiasm",
+      "tip": "🎯 **Vocal Tip**: Express 'Excited' (High energy, enthusiasm). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Excited का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of excited."
+    },
+    "delighted": {
+      "key": "delighted",
+      "title": "Delighted",
+      "meaning": "Extremely pleased, cheerful",
+      "category_id": "happiness",
+      "category_name": "1. Happiness & Positive Emotions",
+      "badge": "Delighted — Extremely pleased, cheerful",
+      "tip": "🎯 **Vocal Tip**: Express 'Delighted' (Extremely pleased, cheerful). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Delighted का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of delighted."
+    },
+    "amused": {
+      "key": "amused",
+      "title": "Amused",
+      "meaning": "Finding something funny",
+      "category_id": "happiness",
+      "category_name": "1. Happiness & Positive Emotions",
+      "badge": "Amused — Finding something funny",
+      "tip": "🎯 **Vocal Tip**: Express 'Amused' (Finding something funny). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Amused का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of amused."
+    },
+    "playful": {
+      "key": "playful",
+      "title": "Playful",
+      "meaning": "Light-hearted, teasing",
+      "category_id": "happiness",
+      "category_name": "1. Happiness & Positive Emotions",
+      "badge": "Playful — Light-hearted, teasing",
+      "tip": "🎯 **Vocal Tip**: Express 'Playful' (Light-hearted, teasing). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Playful का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of playful."
+    },
+    "proud": {
+      "key": "proud",
+      "title": "Proud",
+      "meaning": "Confidence in achievement",
+      "category_id": "happiness",
+      "category_name": "1. Happiness & Positive Emotions",
+      "badge": "Proud — Confidence in achievement",
+      "tip": "🎯 **Vocal Tip**: Express 'Proud' (Confidence in achievement). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Proud का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of proud."
+    },
+    "hopeful": {
+      "key": "hopeful",
+      "title": "Hopeful",
+      "meaning": "Positive expectation",
+      "category_id": "happiness",
+      "category_name": "1. Happiness & Positive Emotions",
+      "badge": "Hopeful — Positive expectation",
+      "tip": "🎯 **Vocal Tip**: Express 'Hopeful' (Positive expectation). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Hopeful का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of hopeful."
+    },
+    "grateful": {
+      "key": "grateful",
+      "title": "Grateful",
+      "meaning": "Thankfulness, heartfelt warmth",
+      "category_id": "happiness",
+      "category_name": "1. Happiness & Positive Emotions",
+      "badge": "Grateful — Thankfulness, heartfelt warmth",
+      "tip": "🎯 **Vocal Tip**: Express 'Grateful' (Thankfulness, heartfelt warmth). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Grateful का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of grateful."
+    },
+    "relieved": {
+      "key": "relieved",
+      "title": "Relieved",
+      "meaning": "Stress disappearing, relaxed",
+      "category_id": "happiness",
+      "category_name": "1. Happiness & Positive Emotions",
+      "badge": "Relieved — Stress disappearing, relaxed",
+      "tip": "🎯 **Vocal Tip**: Express 'Relieved' (Stress disappearing, relaxed). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Relieved का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of relieved."
+    },
+    "sad": {
+      "key": "sad",
+      "title": "Sad",
+      "meaning": "General sadness",
+      "category_id": "sadness",
+      "category_name": "2. Sadness & Emotional Pain",
+      "badge": "Sad — General sadness",
+      "tip": "🎯 **Vocal Tip**: Express 'Sad' (General sadness). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Sad का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of sad."
+    },
+    "heartbroken": {
+      "key": "heartbroken",
+      "title": "Heartbroken",
+      "meaning": "Deep emotional pain",
+      "category_id": "sadness",
+      "category_name": "2. Sadness & Emotional Pain",
+      "badge": "Heartbroken — Deep emotional pain",
+      "tip": "🎯 **Vocal Tip**: Express 'Heartbroken' (Deep emotional pain). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Heartbroken का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of heartbroken."
+    },
+    "disappointed": {
+      "key": "disappointed",
+      "title": "Disappointed",
+      "meaning": "Expectations not fulfilled",
+      "category_id": "sadness",
+      "category_name": "2. Sadness & Emotional Pain",
+      "badge": "Disappointed — Expectations not fulfilled",
+      "tip": "🎯 **Vocal Tip**: Express 'Disappointed' (Expectations not fulfilled). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Disappointed का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of disappointed."
+    },
+    "lonely": {
+      "key": "lonely",
+      "title": "Lonely",
+      "meaning": "Feeling isolated",
+      "category_id": "sadness",
+      "category_name": "2. Sadness & Emotional Pain",
+      "badge": "Lonely — Feeling isolated",
+      "tip": "🎯 **Vocal Tip**: Express 'Lonely' (Feeling isolated). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Lonely का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of lonely."
+    },
+    "hurt": {
+      "key": "hurt",
+      "title": "Hurt",
+      "meaning": "Emotionally wounded",
+      "category_id": "sadness",
+      "category_name": "2. Sadness & Emotional Pain",
+      "badge": "Hurt — Emotionally wounded",
+      "tip": "🎯 **Vocal Tip**: Express 'Hurt' (Emotionally wounded). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Hurt का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of hurt."
+    },
+    "melancholic": {
+      "key": "melancholic",
+      "title": "Melancholic",
+      "meaning": "Quiet, thoughtful sadness",
+      "category_id": "sadness",
+      "category_name": "2. Sadness & Emotional Pain",
+      "badge": "Melancholic — Quiet, thoughtful sadness",
+      "tip": "🎯 **Vocal Tip**: Express 'Melancholic' (Quiet, thoughtful sadness). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Melancholic का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of melancholic."
+    },
+    "grief_stricken": {
+      "key": "grief_stricken",
+      "title": "Grief-stricken",
+      "meaning": "Deep loss and sorrow",
+      "category_id": "sadness",
+      "category_name": "2. Sadness & Emotional Pain",
+      "badge": "Grief-stricken — Deep loss and sorrow",
+      "tip": "🎯 **Vocal Tip**: Express 'Grief-stricken' (Deep loss and sorrow). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Grief-stricken का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of grief-stricken."
+    },
+    "tearful": {
+      "key": "tearful",
+      "title": "Tearful",
+      "meaning": "Voice close to crying",
+      "category_id": "sadness",
+      "category_name": "2. Sadness & Emotional Pain",
+      "badge": "Tearful — Voice close to crying",
+      "tip": "🎯 **Vocal Tip**: Express 'Tearful' (Voice close to crying). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Tearful का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of tearful."
+    },
+    "regretful": {
+      "key": "regretful",
+      "title": "Regretful",
+      "meaning": "Feeling sorry about something",
+      "category_id": "sadness",
+      "category_name": "2. Sadness & Emotional Pain",
+      "badge": "Regretful — Feeling sorry about something",
+      "tip": "🎯 **Vocal Tip**: Express 'Regretful' (Feeling sorry about something). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Regretful का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of regretful."
+    },
+    "angry": {
+      "key": "angry",
+      "title": "Angry",
+      "meaning": "General anger",
+      "category_id": "anger",
+      "category_name": "3. Anger & Frustration",
+      "badge": "Angry — General anger",
+      "tip": "🎯 **Vocal Tip**: Express 'Angry' (General anger). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Angry का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of angry."
+    },
+    "furious": {
+      "key": "furious",
+      "title": "Furious",
+      "meaning": "Extreme anger",
+      "category_id": "anger",
+      "category_name": "3. Anger & Frustration",
+      "badge": "Furious — Extreme anger",
+      "tip": "🎯 **Vocal Tip**: Express 'Furious' (Extreme anger). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Furious का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of furious."
+    },
+    "irritated": {
+      "key": "irritated",
+      "title": "Irritated",
+      "meaning": "Mild annoyance",
+      "category_id": "anger",
+      "category_name": "3. Anger & Frustration",
+      "badge": "Irritated — Mild annoyance",
+      "tip": "🎯 **Vocal Tip**: Express 'Irritated' (Mild annoyance). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Irritated का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of irritated."
+    },
+    "frustrated": {
+      "key": "frustrated",
+      "title": "Frustrated",
+      "meaning": "Unable to achieve something",
+      "category_id": "anger",
+      "category_name": "3. Anger & Frustration",
+      "badge": "Frustrated — Unable to achieve something",
+      "tip": "🎯 **Vocal Tip**: Express 'Frustrated' (Unable to achieve something). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Frustrated का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of frustrated."
+    },
+    "annoyed": {
+      "key": "annoyed",
+      "title": "Annoyed",
+      "meaning": "Bothered by something",
+      "category_id": "anger",
+      "category_name": "3. Anger & Frustration",
+      "badge": "Annoyed — Bothered by something",
+      "tip": "🎯 **Vocal Tip**: Express 'Annoyed' (Bothered by something). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Annoyed का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of annoyed."
+    },
+    "resentful": {
+      "key": "resentful",
+      "title": "Resentful",
+      "meaning": "Holding onto anger",
+      "category_id": "anger",
+      "category_name": "3. Anger & Frustration",
+      "badge": "Resentful — Holding onto anger",
+      "tip": "🎯 **Vocal Tip**: Express 'Resentful' (Holding onto anger). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Resentful का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of resentful."
+    },
+    "sarcastic": {
+      "key": "sarcastic",
+      "title": "Sarcastic",
+      "meaning": "Mocking or ironic delivery",
+      "category_id": "anger",
+      "category_name": "3. Anger & Frustration",
+      "badge": "Sarcastic — Mocking or ironic delivery",
+      "tip": "🎯 **Vocal Tip**: Express 'Sarcastic' (Mocking or ironic delivery). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Sarcastic का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of sarcastic."
+    },
+    "indignant": {
+      "key": "indignant",
+      "title": "Indignant",
+      "meaning": "Anger over perceived injustice",
+      "category_id": "anger",
+      "category_name": "3. Anger & Frustration",
+      "badge": "Indignant — Anger over perceived injustice",
+      "tip": "🎯 **Vocal Tip**: Express 'Indignant' (Anger over perceived injustice). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Indignant का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of indignant."
+    },
+    "afraid": {
+      "key": "afraid",
+      "title": "Afraid",
+      "meaning": "General fear",
+      "category_id": "fear",
+      "category_name": "4. Fear, Anxiety & Nervousness",
+      "badge": "Afraid — General fear",
+      "tip": "🎯 **Vocal Tip**: Express 'Afraid' (General fear). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Afraid का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of afraid."
+    },
+    "terrified": {
+      "key": "terrified",
+      "title": "Terrified",
+      "meaning": "Extreme fear",
+      "category_id": "fear",
+      "category_name": "4. Fear, Anxiety & Nervousness",
+      "badge": "Terrified — Extreme fear",
+      "tip": "🎯 **Vocal Tip**: Express 'Terrified' (Extreme fear). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Terrified का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of terrified."
+    },
+    "scared": {
+      "key": "scared",
+      "title": "Scared",
+      "meaning": "Sudden or immediate fear",
+      "category_id": "fear",
+      "category_name": "4. Fear, Anxiety & Nervousness",
+      "badge": "Scared — Sudden or immediate fear",
+      "tip": "🎯 **Vocal Tip**: Express 'Scared' (Sudden or immediate fear). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Scared का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of scared."
+    },
+    "anxious": {
+      "key": "anxious",
+      "title": "Anxious",
+      "meaning": "Worried about what might happen",
+      "category_id": "fear",
+      "category_name": "4. Fear, Anxiety & Nervousness",
+      "badge": "Anxious — Worried about what might happen",
+      "tip": "🎯 **Vocal Tip**: Express 'Anxious' (Worried about what might happen). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Anxious का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of anxious."
+    },
+    "nervous": {
+      "key": "nervous",
+      "title": "Nervous",
+      "meaning": "Uneasy or uncomfortable",
+      "category_id": "fear",
+      "category_name": "4. Fear, Anxiety & Nervousness",
+      "badge": "Nervous — Uneasy or uncomfortable",
+      "tip": "🎯 **Vocal Tip**: Express 'Nervous' (Uneasy or uncomfortable). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Nervous का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of nervous."
+    },
+    "panicked": {
+      "key": "panicked",
+      "title": "Panicked",
+      "meaning": "Extreme sudden fear",
+      "category_id": "fear",
+      "category_name": "4. Fear, Anxiety & Nervousness",
+      "badge": "Panicked — Extreme sudden fear",
+      "tip": "🎯 **Vocal Tip**: Express 'Panicked' (Extreme sudden fear). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Panicked का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of panicked."
+    },
+    "suspicious": {
+      "key": "suspicious",
+      "title": "Suspicious",
+      "meaning": "Distrustful, doubtful",
+      "category_id": "fear",
+      "category_name": "4. Fear, Anxiety & Nervousness",
+      "badge": "Suspicious — Distrustful, doubtful",
+      "tip": "🎯 **Vocal Tip**: Express 'Suspicious' (Distrustful, doubtful). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Suspicious का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of suspicious."
+    },
+    "insecure": {
+      "key": "insecure",
+      "title": "Insecure",
+      "meaning": "Lacking confidence",
+      "category_id": "fear",
+      "category_name": "4. Fear, Anxiety & Nervousness",
+      "badge": "Insecure — Lacking confidence",
+      "tip": "🎯 **Vocal Tip**: Express 'Insecure' (Lacking confidence). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Insecure का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of insecure."
+    },
+    "cautious": {
+      "key": "cautious",
+      "title": "Cautious",
+      "meaning": "Careful, alert delivery",
+      "category_id": "fear",
+      "category_name": "4. Fear, Anxiety & Nervousness",
+      "badge": "Cautious — Careful, alert delivery",
+      "tip": "🎯 **Vocal Tip**: Express 'Cautious' (Careful, alert delivery). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Cautious का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of cautious."
+    },
+    "surprised": {
+      "key": "surprised",
+      "title": "Surprised",
+      "meaning": "Unexpected discovery",
+      "category_id": "surprise",
+      "category_name": "5. Surprise & Shock",
+      "badge": "Surprised — Unexpected discovery",
+      "tip": "🎯 **Vocal Tip**: Express 'Surprised' (Unexpected discovery). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Surprised का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of surprised."
+    },
+    "shocked": {
+      "key": "shocked",
+      "title": "Shocked",
+      "meaning": "Strong unexpected reaction",
+      "category_id": "surprise",
+      "category_name": "5. Surprise & Shock",
+      "badge": "Shocked — Strong unexpected reaction",
+      "tip": "🎯 **Vocal Tip**: Express 'Shocked' (Strong unexpected reaction). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Shocked का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of shocked."
+    },
+    "astonished": {
+      "key": "astonished",
+      "title": "Astonished",
+      "meaning": "Extremely surprised",
+      "category_id": "surprise",
+      "category_name": "5. Surprise & Shock",
+      "badge": "Astonished — Extremely surprised",
+      "tip": "🎯 **Vocal Tip**: Express 'Astonished' (Extremely surprised). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Astonished का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of astonished."
+    },
+    "amazed": {
+      "key": "amazed",
+      "title": "Amazed",
+      "meaning": "Positive surprise",
+      "category_id": "surprise",
+      "category_name": "5. Surprise & Shock",
+      "badge": "Amazed — Positive surprise",
+      "tip": "🎯 **Vocal Tip**: Express 'Amazed' (Positive surprise). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Amazed का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of amazed."
+    },
+    "stunned": {
+      "key": "stunned",
+      "title": "Stunned",
+      "meaning": "Temporarily speechless",
+      "category_id": "surprise",
+      "category_name": "5. Surprise & Shock",
+      "badge": "Stunned — Temporarily speechless",
+      "tip": "🎯 **Vocal Tip**: Express 'Stunned' (Temporarily speechless). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Stunned का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of stunned."
+    },
+    "confused": {
+      "key": "confused",
+      "title": "Confused",
+      "meaning": "Unable to understand",
+      "category_id": "surprise",
+      "category_name": "5. Surprise & Shock",
+      "badge": "Confused — Unable to understand",
+      "tip": "🎯 **Vocal Tip**: Express 'Confused' (Unable to understand). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Confused का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of confused."
+    },
+    "bewildered": {
+      "key": "bewildered",
+      "title": "Bewildered",
+      "meaning": "Completely puzzled",
+      "category_id": "surprise",
+      "category_name": "5. Surprise & Shock",
+      "badge": "Bewildered — Completely puzzled",
+      "tip": "🎯 **Vocal Tip**: Express 'Bewildered' (Completely puzzled). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Bewildered का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of bewildered."
+    },
+    "loving": {
+      "key": "loving",
+      "title": "Loving",
+      "meaning": "Deep affection",
+      "category_id": "love",
+      "category_name": "6. Love, Care & Affection",
+      "badge": "Loving — Deep affection",
+      "tip": "🎯 **Vocal Tip**: Express 'Loving' (Deep affection). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Loving का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of loving."
+    },
+    "affectionate": {
+      "key": "affectionate",
+      "title": "Affectionate",
+      "meaning": "Warm and caring",
+      "category_id": "love",
+      "category_name": "6. Love, Care & Affection",
+      "badge": "Affectionate — Warm and caring",
+      "tip": "🎯 **Vocal Tip**: Express 'Affectionate' (Warm and caring). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Affectionate का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of affectionate."
+    },
+    "compassionate": {
+      "key": "compassionate",
+      "title": "Compassionate",
+      "meaning": "Understanding someone's pain",
+      "category_id": "love",
+      "category_name": "6. Love, Care & Affection",
+      "badge": "Compassionate — Understanding someone's pain",
+      "tip": "🎯 **Vocal Tip**: Express 'Compassionate' (Understanding someone's pain). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Compassionate का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of compassionate."
+    },
+    "empathetic": {
+      "key": "empathetic",
+      "title": "Empathetic",
+      "meaning": "Emotionally connecting with someone",
+      "category_id": "love",
+      "category_name": "6. Love, Care & Affection",
+      "badge": "Empathetic — Emotionally connecting with someone",
+      "tip": "🎯 **Vocal Tip**: Express 'Empathetic' (Emotionally connecting with someone). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Empathetic का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of empathetic."
+    },
+    "caring": {
+      "key": "caring",
+      "title": "Caring",
+      "meaning": "Showing concern",
+      "category_id": "love",
+      "category_name": "6. Love, Care & Affection",
+      "badge": "Caring — Showing concern",
+      "tip": "🎯 **Vocal Tip**: Express 'Caring' (Showing concern). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Caring का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of caring."
+    },
+    "tender": {
+      "key": "tender",
+      "title": "Tender",
+      "meaning": "Gentle emotional expression",
+      "category_id": "love",
+      "category_name": "6. Love, Care & Affection",
+      "badge": "Tender — Gentle emotional expression",
+      "tip": "🎯 **Vocal Tip**: Express 'Tender' (Gentle emotional expression). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Tender का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of tender."
+    },
+    "reassuring": {
+      "key": "reassuring",
+      "title": "Reassuring",
+      "meaning": "Making someone feel safe",
+      "category_id": "love",
+      "category_name": "6. Love, Care & Affection",
+      "badge": "Reassuring — Making someone feel safe",
+      "tip": "🎯 **Vocal Tip**: Express 'Reassuring' (Making someone feel safe). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Reassuring का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of reassuring."
+    },
+    "nostalgic": {
+      "key": "nostalgic",
+      "title": "Nostalgic",
+      "meaning": "Emotional memories of the past",
+      "category_id": "love",
+      "category_name": "6. Love, Care & Affection",
+      "badge": "Nostalgic — Emotional memories of the past",
+      "tip": "🎯 **Vocal Tip**: Express 'Nostalgic' (Emotional memories of the past). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Nostalgic का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of nostalgic."
+    },
+    "confident": {
+      "key": "confident",
+      "title": "Confident",
+      "meaning": "Self-assured",
+      "category_id": "confidence",
+      "category_name": "7. Confidence & Authority",
+      "badge": "Confident — Self-assured",
+      "tip": "🎯 **Vocal Tip**: Express 'Confident' (Self-assured). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Confident का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of confident."
+    },
+    "assertive": {
+      "key": "assertive",
+      "title": "Assertive",
+      "meaning": "Firm and clear",
+      "category_id": "confidence",
+      "category_name": "7. Confidence & Authority",
+      "badge": "Assertive — Firm and clear",
+      "tip": "🎯 **Vocal Tip**: Express 'Assertive' (Firm and clear). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Assertive का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of assertive."
+    },
+    "authoritative": {
+      "key": "authoritative",
+      "title": "Authoritative",
+      "meaning": "Commanding, authoritative",
+      "category_id": "confidence",
+      "category_name": "7. Confidence & Authority",
+      "badge": "Authoritative — Commanding, authoritative",
+      "tip": "🎯 **Vocal Tip**: Express 'Authoritative' (Commanding, authoritative). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Authoritative का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of authoritative."
+    },
+    "determined": {
+      "key": "determined",
+      "title": "Determined",
+      "meaning": "Strong commitment",
+      "category_id": "confidence",
+      "category_name": "7. Confidence & Authority",
+      "badge": "Determined — Strong commitment",
+      "tip": "🎯 **Vocal Tip**: Express 'Determined' (Strong commitment). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Determined का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of determined."
+    },
+    "motivational": {
+      "key": "motivational",
+      "title": "Motivational",
+      "meaning": "Encouraging action",
+      "category_id": "confidence",
+      "category_name": "7. Confidence & Authority",
+      "badge": "Motivational — Encouraging action",
+      "tip": "🎯 **Vocal Tip**: Express 'Motivational' (Encouraging action). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Motivational का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of motivational."
+    },
+    "persuasive": {
+      "key": "persuasive",
+      "title": "Persuasive",
+      "meaning": "Convincing someone",
+      "category_id": "confidence",
+      "category_name": "7. Confidence & Authority",
+      "badge": "Persuasive — Convincing someone",
+      "tip": "🎯 **Vocal Tip**: Express 'Persuasive' (Convincing someone). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Persuasive का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of persuasive."
+    },
+    "dominant": {
+      "key": "dominant",
+      "title": "Dominant",
+      "meaning": "Strong, controlling presence",
+      "category_id": "confidence",
+      "category_name": "7. Confidence & Authority",
+      "badge": "Dominant — Strong, controlling presence",
+      "tip": "🎯 **Vocal Tip**: Express 'Dominant' (Strong, controlling presence). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Dominant का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of dominant."
+    },
+    "defiant": {
+      "key": "defiant",
+      "title": "Defiant",
+      "meaning": "Refusing to give in",
+      "category_id": "confidence",
+      "category_name": "7. Confidence & Authority",
+      "badge": "Defiant — Refusing to give in",
+      "tip": "🎯 **Vocal Tip**: Express 'Defiant' (Refusing to give in). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Defiant का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of defiant."
+    },
+    "curious": {
+      "key": "curious",
+      "title": "Curious",
+      "meaning": "Wanting to know something",
+      "category_id": "curiosity",
+      "category_name": "8. Curiosity & Interest",
+      "badge": "Curious — Wanting to know something",
+      "tip": "🎯 **Vocal Tip**: Express 'Curious' (Wanting to know something). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Curious का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of curious."
+    },
+    "intrigued": {
+      "key": "intrigued",
+      "title": "Intrigued",
+      "meaning": "Deeply interested",
+      "category_id": "curiosity",
+      "category_name": "8. Curiosity & Interest",
+      "badge": "Intrigued — Deeply interested",
+      "tip": "🎯 **Vocal Tip**: Express 'Intrigued' (Deeply interested). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Intrigued का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of intrigued."
+    },
+    "interested": {
+      "key": "interested",
+      "title": "Interested",
+      "meaning": "Attentive and engaged",
+      "category_id": "curiosity",
+      "category_name": "8. Curiosity & Interest",
+      "badge": "Interested — Attentive and engaged",
+      "tip": "🎯 **Vocal Tip**: Express 'Interested' (Attentive and engaged). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Interested का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of interested."
+    },
+    "inquisitive": {
+      "key": "inquisitive",
+      "title": "Inquisitive",
+      "meaning": "Asking questions eagerly",
+      "category_id": "curiosity",
+      "category_name": "8. Curiosity & Interest",
+      "badge": "Inquisitive — Asking questions eagerly",
+      "tip": "🎯 **Vocal Tip**: Express 'Inquisitive' (Asking questions eagerly). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Inquisitive का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of inquisitive."
+    },
+    "wondering": {
+      "key": "wondering",
+      "title": "Wondering",
+      "meaning": "Thinking about something",
+      "category_id": "curiosity",
+      "category_name": "8. Curiosity & Interest",
+      "badge": "Wondering — Thinking about something",
+      "tip": "🎯 **Vocal Tip**: Express 'Wondering' (Thinking about something). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Wondering का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of wondering."
+    },
+    "skeptical": {
+      "key": "skeptical",
+      "title": "Skeptical",
+      "meaning": "Questioning whether something is true",
+      "category_id": "curiosity",
+      "category_name": "8. Curiosity & Interest",
+      "badge": "Skeptical — Questioning whether something is true",
+      "tip": "🎯 **Vocal Tip**: Express 'Skeptical' (Questioning whether something is true). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Skeptical का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of skeptical."
+    },
+    "investigative": {
+      "key": "investigative",
+      "title": "Investigative",
+      "meaning": "Searching for answers",
+      "category_id": "curiosity",
+      "category_name": "8. Curiosity & Interest",
+      "badge": "Investigative — Searching for answers",
+      "tip": "🎯 **Vocal Tip**: Express 'Investigative' (Searching for answers). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Investigative का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of investigative."
+    },
+    "calm": {
+      "key": "calm",
+      "title": "Calm",
+      "meaning": "Relaxed and composed",
+      "category_id": "calmness",
+      "category_name": "9. Calmness & Peace",
+      "badge": "Calm — Relaxed and composed",
+      "tip": "🎯 **Vocal Tip**: Express 'Calm' (Relaxed and composed). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Calm का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of calm."
+    },
+    "peaceful": {
+      "key": "peaceful",
+      "title": "Peaceful",
+      "meaning": "Deep inner peace",
+      "category_id": "calmness",
+      "category_name": "9. Calmness & Peace",
+      "badge": "Peaceful — Deep inner peace",
+      "tip": "🎯 **Vocal Tip**: Express 'Peaceful' (Deep inner peace). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Peaceful का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of peaceful."
+    },
+    "relaxed": {
+      "key": "relaxed",
+      "title": "Relaxed",
+      "meaning": "Casual and comfortable",
+      "category_id": "calmness",
+      "category_name": "9. Calmness & Peace",
+      "badge": "Relaxed — Casual and comfortable",
+      "tip": "🎯 **Vocal Tip**: Express 'Relaxed' (Casual and comfortable). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Relaxed का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of relaxed."
+    },
+    "serene": {
+      "key": "serene",
+      "title": "Serene",
+      "meaning": "Quiet, gentle composure",
+      "category_id": "calmness",
+      "category_name": "9. Calmness & Peace",
+      "badge": "Serene — Quiet, gentle composure",
+      "tip": "🎯 **Vocal Tip**: Express 'Serene' (Quiet, gentle composure). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Serene का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of serene."
+    },
+    "patient": {
+      "key": "patient",
+      "title": "Patient",
+      "meaning": "Not rushing",
+      "category_id": "calmness",
+      "category_name": "9. Calmness & Peace",
+      "badge": "Patient — Not rushing",
+      "tip": "🎯 **Vocal Tip**: Express 'Patient' (Not rushing). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Patient का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of patient."
+    },
+    "content": {
+      "key": "content",
+      "title": "Content",
+      "meaning": "Satisfied with the present",
+      "category_id": "calmness",
+      "category_name": "9. Calmness & Peace",
+      "badge": "Content — Satisfied with the present",
+      "tip": "🎯 **Vocal Tip**: Express 'Content' (Satisfied with the present). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Content का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of content."
+    },
+    "meditative": {
+      "key": "meditative",
+      "title": "Meditative",
+      "meaning": "Slow, reflective delivery",
+      "category_id": "calmness",
+      "category_name": "9. Calmness & Peace",
+      "badge": "Meditative — Slow, reflective delivery",
+      "tip": "🎯 **Vocal Tip**: Express 'Meditative' (Slow, reflective delivery). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Meditative का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of meditative."
+    },
+    "funny": {
+      "key": "funny",
+      "title": "Funny",
+      "meaning": "Naturally humorous",
+      "category_id": "humor",
+      "category_name": "10. Humor & Comedy",
+      "badge": "Funny — Naturally humorous",
+      "tip": "🎯 **Vocal Tip**: Express 'Funny' (Naturally humorous). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Funny का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of funny."
+    },
+    "amused_laughter": {
+      "key": "amused_laughter",
+      "title": "Amused Laughter",
+      "meaning": "Laughing at something",
+      "category_id": "humor",
+      "category_name": "10. Humor & Comedy",
+      "badge": "Amused Laughter — Laughing at something",
+      "tip": "🎯 **Vocal Tip**: Express 'Amused Laughter' (Laughing at something). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Amused Laughter का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of amused laughter."
+    },
+    "chuckling": {
+      "key": "chuckling",
+      "title": "Chuckling",
+      "meaning": "Light, controlled laughter",
+      "category_id": "humor",
+      "category_name": "10. Humor & Comedy",
+      "badge": "Chuckling — Light, controlled laughter",
+      "tip": "🎯 **Vocal Tip**: Express 'Chuckling' (Light, controlled laughter). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Chuckling का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of chuckling."
+    },
+    "giggling": {
+      "key": "giggling",
+      "title": "Giggling",
+      "meaning": "Small playful laughter",
+      "category_id": "humor",
+      "category_name": "10. Humor & Comedy",
+      "badge": "Giggling — Small playful laughter",
+      "tip": "🎯 **Vocal Tip**: Express 'Giggling' (Small playful laughter). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Giggling का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of giggling."
+    },
+    "sarcastic_humor": {
+      "key": "sarcastic_humor",
+      "title": "Sarcastic Humor",
+      "meaning": "Ironic or mocking humor",
+      "category_id": "humor",
+      "category_name": "10. Humor & Comedy",
+      "badge": "Sarcastic Humor — Ironic or mocking humor",
+      "tip": "🎯 **Vocal Tip**: Express 'Sarcastic Humor' (Ironic or mocking humor). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Sarcastic Humor का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of sarcastic humor."
+    },
+    "teasing": {
+      "key": "teasing",
+      "title": "Teasing",
+      "meaning": "Playfully making fun",
+      "category_id": "humor",
+      "category_name": "10. Humor & Comedy",
+      "badge": "Teasing — Playfully making fun",
+      "tip": "🎯 **Vocal Tip**: Express 'Teasing' (Playfully making fun). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Teasing का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of teasing."
+    },
+    "witty": {
+      "key": "witty",
+      "title": "Witty",
+      "meaning": "Clever, humorous delivery",
+      "category_id": "humor",
+      "category_name": "10. Humor & Comedy",
+      "badge": "Witty — Clever, humorous delivery",
+      "tip": "🎯 **Vocal Tip**: Express 'Witty' (Clever, humorous delivery). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Witty का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of witty."
+    },
+    "deadpan": {
+      "key": "deadpan",
+      "title": "Deadpan",
+      "meaning": "Intentionally emotionless comedy",
+      "category_id": "humor",
+      "category_name": "10. Humor & Comedy",
+      "badge": "Deadpan — Intentionally emotionless comedy",
+      "tip": "🎯 **Vocal Tip**: Express 'Deadpan' (Intentionally emotionless comedy). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Deadpan का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of deadpan."
+    },
+    "disgusted": {
+      "key": "disgusted",
+      "title": "Disgusted",
+      "meaning": "Strong dislike",
+      "category_id": "disgust",
+      "category_name": "11. Disgust & Disapproval",
+      "badge": "Disgusted — Strong dislike",
+      "tip": "🎯 **Vocal Tip**: Express 'Disgusted' (Strong dislike). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Disgusted का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of disgusted."
+    },
+    "repulsed": {
+      "key": "repulsed",
+      "title": "Repulsed",
+      "meaning": "Extreme disgust",
+      "category_id": "disgust",
+      "category_name": "11. Disgust & Disapproval",
+      "badge": "Repulsed — Extreme disgust",
+      "tip": "🎯 **Vocal Tip**: Express 'Repulsed' (Extreme disgust). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Repulsed का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of repulsed."
+    },
+    "unimpressed": {
+      "key": "unimpressed",
+      "title": "Unimpressed",
+      "meaning": "Not impressed",
+      "category_id": "disgust",
+      "category_name": "11. Disgust & Disapproval",
+      "badge": "Unimpressed — Not impressed",
+      "tip": "🎯 **Vocal Tip**: Express 'Unimpressed' (Not impressed). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Unimpressed का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of unimpressed."
+    },
+    "disapproving": {
+      "key": "disapproving",
+      "title": "Disapproving",
+      "meaning": "Expressing disagreement",
+      "category_id": "disgust",
+      "category_name": "11. Disgust & Disapproval",
+      "badge": "Disapproving — Expressing disagreement",
+      "tip": "🎯 **Vocal Tip**: Express 'Disapproving' (Expressing disagreement). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Disapproving का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of disapproving."
+    },
+    "contemptuous": {
+      "key": "contemptuous",
+      "title": "Contemptuous",
+      "meaning": "Showing disrespect",
+      "category_id": "disgust",
+      "category_name": "11. Disgust & Disapproval",
+      "badge": "Contemptuous — Showing disrespect",
+      "tip": "🎯 **Vocal Tip**: Express 'Contemptuous' (Showing disrespect). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Contemptuous का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of contemptuous."
+    },
+    "dismissive": {
+      "key": "dismissive",
+      "title": "Dismissive",
+      "meaning": "Treating something as unimportant",
+      "category_id": "disgust",
+      "category_name": "11. Disgust & Disapproval",
+      "badge": "Dismissive — Treating something as unimportant",
+      "tip": "🎯 **Vocal Tip**: Express 'Dismissive' (Treating something as unimportant). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Dismissive का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of dismissive."
+    },
+    "guilty": {
+      "key": "guilty",
+      "title": "Guilty",
+      "meaning": "Feeling responsible for wrongdoing",
+      "category_id": "shame",
+      "category_name": "12. Shame, Guilt & Embarrassment",
+      "badge": "Guilty — Feeling responsible for wrongdoing",
+      "tip": "🎯 **Vocal Tip**: Express 'Guilty' (Feeling responsible for wrongdoing). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Guilty का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of guilty."
+    },
+    "ashamed": {
+      "key": "ashamed",
+      "title": "Ashamed",
+      "meaning": "Deep embarrassment about oneself",
+      "category_id": "shame",
+      "category_name": "12. Shame, Guilt & Embarrassment",
+      "badge": "Ashamed — Deep embarrassment about oneself",
+      "tip": "🎯 **Vocal Tip**: Express 'Ashamed' (Deep embarrassment about oneself). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Ashamed का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of ashamed."
+    },
+    "embarrassed": {
+      "key": "embarrassed",
+      "title": "Embarrassed",
+      "meaning": "Social discomfort",
+      "category_id": "shame",
+      "category_name": "12. Shame, Guilt & Embarrassment",
+      "badge": "Embarrassed — Social discomfort",
+      "tip": "🎯 **Vocal Tip**: Express 'Embarrassed' (Social discomfort). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Embarrassed का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of embarrassed."
+    },
+    "regretful_shame": {
+      "key": "regretful_shame",
+      "title": "Regretful Shame",
+      "meaning": "Wishing something had been different",
+      "category_id": "shame",
+      "category_name": "12. Shame, Guilt & Embarrassment",
+      "badge": "Regretful Shame — Wishing something had been different",
+      "tip": "🎯 **Vocal Tip**: Express 'Regretful Shame' (Wishing something had been different). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Regretful Shame का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of regretful shame."
+    },
+    "remorseful": {
+      "key": "remorseful",
+      "title": "Remorseful",
+      "meaning": "Deep regret for causing harm",
+      "category_id": "shame",
+      "category_name": "12. Shame, Guilt & Embarrassment",
+      "badge": "Remorseful — Deep regret for causing harm",
+      "tip": "🎯 **Vocal Tip**: Express 'Remorseful' (Deep regret for causing harm). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Remorseful का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of remorseful."
+    },
+    "humiliated": {
+      "key": "humiliated",
+      "title": "Humiliated",
+      "meaning": "Feeling publicly degraded",
+      "category_id": "shame",
+      "category_name": "12. Shame, Guilt & Embarrassment",
+      "badge": "Humiliated — Feeling publicly degraded",
+      "tip": "🎯 **Vocal Tip**: Express 'Humiliated' (Feeling publicly degraded). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Humiliated का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of humiliated."
+    },
+    "brave": {
+      "key": "brave",
+      "title": "Brave",
+      "meaning": "Facing fear confidently",
+      "category_id": "determination",
+      "category_name": "13. Determination, Courage & Resilience",
+      "badge": "Brave — Facing fear confidently",
+      "tip": "🎯 **Vocal Tip**: Express 'Brave' (Facing fear confidently). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Brave का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of brave."
+    },
+    "courageous": {
+      "key": "courageous",
+      "title": "Courageous",
+      "meaning": "Showing strong courage",
+      "category_id": "determination",
+      "category_name": "13. Determination, Courage & Resilience",
+      "badge": "Courageous — Showing strong courage",
+      "tip": "🎯 **Vocal Tip**: Express 'Courageous' (Showing strong courage). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Courageous का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of courageous."
+    },
+    "resilient": {
+      "key": "resilient",
+      "title": "Resilient",
+      "meaning": "Recovering from difficulties",
+      "category_id": "determination",
+      "category_name": "13. Determination, Courage & Resilience",
+      "badge": "Resilient — Recovering from difficulties",
+      "tip": "🎯 **Vocal Tip**: Express 'Resilient' (Recovering from difficulties). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Resilient का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of resilient."
+    },
+    "persistent": {
+      "key": "persistent",
+      "title": "Persistent",
+      "meaning": "Continuing despite obstacles",
+      "category_id": "determination",
+      "category_name": "13. Determination, Courage & Resilience",
+      "badge": "Persistent — Continuing despite obstacles",
+      "tip": "🎯 **Vocal Tip**: Express 'Persistent' (Continuing despite obstacles). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Persistent का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of persistent."
+    },
+    "passionate": {
+      "key": "passionate",
+      "title": "Passionate",
+      "meaning": "Strong emotional commitment",
+      "category_id": "determination",
+      "category_name": "13. Determination, Courage & Resilience",
+      "badge": "Passionate — Strong emotional commitment",
+      "tip": "🎯 **Vocal Tip**: Express 'Passionate' (Strong emotional commitment). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Passionate का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of passionate."
+    },
+    "inspired": {
+      "key": "inspired",
+      "title": "Inspired",
+      "meaning": "Feeling motivated by something",
+      "category_id": "determination",
+      "category_name": "13. Determination, Courage & Resilience",
+      "badge": "Inspired — Feeling motivated by something",
+      "tip": "🎯 **Vocal Tip**: Express 'Inspired' (Feeling motivated by something). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Inspired का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of inspired."
+    },
+    "empowered": {
+      "key": "empowered",
+      "title": "Empowered",
+      "meaning": "Feeling capable and strong",
+      "category_id": "determination",
+      "category_name": "13. Determination, Courage & Resilience",
+      "badge": "Empowered — Feeling capable and strong",
+      "tip": "🎯 **Vocal Tip**: Express 'Empowered' (Feeling capable and strong). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Empowered का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of empowered."
+    },
+    "doubtful": {
+      "key": "doubtful",
+      "title": "Doubtful",
+      "meaning": "Not fully convinced",
+      "category_id": "confusion",
+      "category_name": "14. Confusion, Doubt & Indecision",
+      "badge": "Doubtful — Not fully convinced",
+      "tip": "🎯 **Vocal Tip**: Express 'Doubtful' (Not fully convinced). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Doubtful का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of doubtful."
+    },
+    "hesitant": {
+      "key": "hesitant",
+      "title": "Hesitant",
+      "meaning": "Unsure about proceeding",
+      "category_id": "confusion",
+      "category_name": "14. Confusion, Doubt & Indecision",
+      "badge": "Hesitant — Unsure about proceeding",
+      "tip": "🎯 **Vocal Tip**: Express 'Hesitant' (Unsure about proceeding). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Hesitant का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of hesitant."
+    },
+    "uncertain": {
+      "key": "uncertain",
+      "title": "Uncertain",
+      "meaning": "Lacking clarity",
+      "category_id": "confusion",
+      "category_name": "14. Confusion, Doubt & Indecision",
+      "badge": "Uncertain — Lacking clarity",
+      "tip": "🎯 **Vocal Tip**: Express 'Uncertain' (Lacking clarity). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Uncertain का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of uncertain."
+    },
+    "indecisive": {
+      "key": "indecisive",
+      "title": "Indecisive",
+      "meaning": "Unable to make a decision",
+      "category_id": "confusion",
+      "category_name": "14. Confusion, Doubt & Indecision",
+      "badge": "Indecisive — Unable to make a decision",
+      "tip": "🎯 **Vocal Tip**: Express 'Indecisive' (Unable to make a decision). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Indecisive का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of indecisive."
+    },
+    "puzzled": {
+      "key": "puzzled",
+      "title": "Puzzled",
+      "meaning": "Trying to understand",
+      "category_id": "confusion",
+      "category_name": "14. Confusion, Doubt & Indecision",
+      "badge": "Puzzled — Trying to understand",
+      "tip": "🎯 **Vocal Tip**: Express 'Puzzled' (Trying to understand). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Puzzled का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of puzzled."
+    },
+    "distrustful": {
+      "key": "distrustful",
+      "title": "Distrustful",
+      "meaning": "Having difficulty trusting",
+      "category_id": "confusion",
+      "category_name": "14. Confusion, Doubt & Indecision",
+      "badge": "Distrustful — Having difficulty trusting",
+      "tip": "🎯 **Vocal Tip**: Express 'Distrustful' (Having difficulty trusting). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Distrustful का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of distrustful."
+    },
+    "storytelling": {
+      "key": "storytelling",
+      "title": "Storytelling",
+      "meaning": "Natural conversational narration",
+      "category_id": "storytelling",
+      "category_name": "15. Storytelling & Communication Expressions",
+      "badge": "Storytelling — Natural conversational narration",
+      "tip": "🎯 **Vocal Tip**: Express 'Storytelling' (Natural conversational narration). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Storytelling का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of storytelling."
+    },
+    "dramatic": {
+      "key": "dramatic",
+      "title": "Dramatic",
+      "meaning": "Expressive, theatrical delivery",
+      "category_id": "storytelling",
+      "category_name": "15. Storytelling & Communication Expressions",
+      "badge": "Dramatic — Expressive, theatrical delivery",
+      "tip": "🎯 **Vocal Tip**: Express 'Dramatic' (Expressive, theatrical delivery). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Dramatic का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of dramatic."
+    },
+    "suspenseful": {
+      "key": "suspenseful",
+      "title": "Suspenseful",
+      "meaning": "Building tension and anticipation",
+      "category_id": "storytelling",
+      "category_name": "15. Storytelling & Communication Expressions",
+      "badge": "Suspenseful — Building tension and anticipation",
+      "tip": "🎯 **Vocal Tip**: Express 'Suspenseful' (Building tension and anticipation). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Suspenseful का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of suspenseful."
+    },
+    "whispering": {
+      "key": "whispering",
+      "title": "Whispering",
+      "meaning": "Very soft, low-volume voice",
+      "category_id": "storytelling",
+      "category_name": "15. Storytelling & Communication Expressions",
+      "badge": "Whispering — Very soft, low-volume voice",
+      "tip": "🎯 **Vocal Tip**: Express 'Whispering' (Very soft, low-volume voice). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Whispering का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of whispering."
+    },
+    "shouting": {
+      "key": "shouting",
+      "title": "Shouting",
+      "meaning": "Loud, forceful voice",
+      "category_id": "storytelling",
+      "category_name": "15. Storytelling & Communication Expressions",
+      "badge": "Shouting — Loud, forceful voice",
+      "tip": "🎯 **Vocal Tip**: Express 'Shouting' (Loud, forceful voice). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Shouting का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of shouting."
+    },
+    "crying": {
+      "key": "crying",
+      "title": "Crying",
+      "meaning": "Broken voice with emotional distress",
+      "category_id": "storytelling",
+      "category_name": "15. Storytelling & Communication Expressions",
+      "badge": "Crying — Broken voice with emotional distress",
+      "tip": "🎯 **Vocal Tip**: Express 'Crying' (Broken voice with emotional distress). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Crying का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of crying."
+    },
+    "laughing": {
+      "key": "laughing",
+      "title": "Laughing",
+      "meaning": "Spoken with laughter",
+      "category_id": "storytelling",
+      "category_name": "15. Storytelling & Communication Expressions",
+      "badge": "Laughing — Spoken with laughter",
+      "tip": "🎯 **Vocal Tip**: Express 'Laughing' (Spoken with laughter). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Laughing का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of laughing."
+    },
+    "serious": {
+      "key": "serious",
+      "title": "Serious",
+      "meaning": "Focused, no-nonsense delivery",
+      "category_id": "storytelling",
+      "category_name": "15. Storytelling & Communication Expressions",
+      "badge": "Serious — Focused, no-nonsense delivery",
+      "tip": "🎯 **Vocal Tip**: Express 'Serious' (Focused, no-nonsense delivery). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Serious का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of serious."
+    },
+    "emotional": {
+      "key": "emotional",
+      "title": "Emotional",
+      "meaning": "Strong heartfelt expression",
+      "category_id": "storytelling",
+      "category_name": "15. Storytelling & Communication Expressions",
+      "badge": "Emotional — Strong heartfelt expression",
+      "tip": "🎯 **Vocal Tip**: Express 'Emotional' (Strong heartfelt expression). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Emotional का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of emotional."
+    },
+    "secretive": {
+      "key": "secretive",
+      "title": "Secretive",
+      "meaning": "Quiet, as if sharing a secret",
+      "category_id": "storytelling",
+      "category_name": "15. Storytelling & Communication Expressions",
+      "badge": "Secretive — Quiet, as if sharing a secret",
+      "tip": "🎯 **Vocal Tip**: Express 'Secretive' (Quiet, as if sharing a secret). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Secretive का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of secretive."
+    },
+    "urgent": {
+      "key": "urgent",
+      "title": "Urgent",
+      "meaning": "Fast, immediate, pressing delivery",
+      "category_id": "storytelling",
+      "category_name": "15. Storytelling & Communication Expressions",
+      "badge": "Urgent — Fast, immediate, pressing delivery",
+      "tip": "🎯 **Vocal Tip**: Express 'Urgent' (Fast, immediate, pressing delivery). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Urgent का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of urgent."
+    },
+    "explanatory": {
+      "key": "explanatory",
+      "title": "Explanatory",
+      "meaning": "Clear teaching and explanation",
+      "category_id": "storytelling",
+      "category_name": "15. Storytelling & Communication Expressions",
+      "badge": "Explanatory — Clear teaching and explanation",
+      "tip": "🎯 **Vocal Tip**: Express 'Explanatory' (Clear teaching and explanation). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Explanatory का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of explanatory."
+    },
+    "conversational": {
+      "key": "conversational",
+      "title": "Conversational",
+      "meaning": "Everyday natural speech",
+      "category_id": "storytelling",
+      "category_name": "15. Storytelling & Communication Expressions",
+      "badge": "Conversational — Everyday natural speech",
+      "tip": "🎯 **Vocal Tip**: Express 'Conversational' (Everyday natural speech). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Conversational का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of conversational."
+    },
+    "reflective": {
+      "key": "reflective",
+      "title": "Reflective",
+      "meaning": "Thoughtful, looking back",
+      "category_id": "storytelling",
+      "category_name": "15. Storytelling & Communication Expressions",
+      "badge": "Reflective — Thoughtful, looking back",
+      "tip": "🎯 **Vocal Tip**: Express 'Reflective' (Thoughtful, looking back). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Reflective का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of reflective."
+    },
+    "inspirational": {
+      "key": "inspirational",
+      "title": "Inspirational",
+      "meaning": "Uplifting and encouraging",
+      "category_id": "storytelling",
+      "category_name": "15. Storytelling & Communication Expressions",
+      "badge": "Inspirational — Uplifting and encouraging",
+      "tip": "🎯 **Vocal Tip**: Express 'Inspirational' (Uplifting and encouraging). Match breathing and cadence to this emotional delivery.",
+      "hindi": "जब यह बात सामने आई, तो आवाज़ में साफ तौर पर Inspirational का भाव झलक रहा था।",
+      "english": "As the moment unfolded, every word carried a distinct expression of inspirational."
+    }
+  }
+}

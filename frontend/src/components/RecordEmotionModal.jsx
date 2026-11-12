@@ -28,6 +28,18 @@ export default function RecordEmotionModal({
   const [characterAgeNumber, setCharacterAgeNumber] = useState('30')
   const [characterGender, setCharacterGender] = useState('male')
   const [selectedEmotion, setSelectedEmotion] = useState(initialEmotion)
+
+  // Group emotions by category for structured dropdown
+  const groupedEmotions = React.useMemo(() => {
+    const groups = {}
+    Object.entries(emotionsGuide).forEach(([key, data]) => {
+      if (key === 'neutral' || key === 'whisper') return
+      const catName = data.category_name || '15. Storytelling & Delivery'
+      if (!groups[catName]) groups[catName] = []
+      groups[catName].push({ key, ...data })
+    })
+    return groups
+  }, [emotionsGuide])
   const [activeScriptTab, setActiveScriptTab] = useState('hi')
 
   // Recording State
@@ -279,13 +291,23 @@ export default function RecordEmotionModal({
               <select
                 value={selectedEmotion}
                 onChange={(e) => setSelectedEmotion(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none capitalize"
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none"
               >
-                {Object.keys(emotionsGuide).map((key) => (
-                  <option key={key} value={key}>
-                    {emotionsGuide[key]?.badge || key}
-                  </option>
-                ))}
+                {Object.keys(groupedEmotions).length > 0
+                  ? Object.entries(groupedEmotions).map(([catName, list]) => (
+                      <optgroup key={catName} label={catName} className="bg-slate-950 font-bold text-sky-400">
+                        {list.map((emo) => (
+                          <option key={emo.key} value={emo.key} className="bg-slate-900 text-white font-normal">
+                            {emo.title} — {emo.meaning}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))
+                  : Object.keys(emotionsGuide).map((key) => (
+                      <option key={key} value={key}>
+                        {emotionsGuide[key]?.badge || key}
+                      </option>
+                    ))}
               </select>
             </div>
           </div>

@@ -122,31 +122,33 @@ export default function CharacterVaultView({
                 </div>
               </div>
 
-              {/* 10 Emotion Badges Matrix */}
+              {/* Recorded Emotion Takes & Add More */}
               <div className="space-y-2 pt-2 border-t border-slate-800/80">
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                  Emotional Profiles:
-                </span>
-                <div className="grid grid-cols-2 gap-2">
-                  {Object.entries(char.emotions).map(([emoKey, emoData]) => (
-                    <div
-                      key={emoKey}
-                      className={`p-2.5 rounded-xl border flex items-center justify-between text-xs transition-colors ${
-                        emoData.recorded
-                          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-                          : 'bg-slate-900/40 border-slate-800 text-slate-500'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-1.5 truncate">
-                        {emoData.recorded ? (
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-                        ) : (
-                          <div className="w-3.5 h-3.5 rounded-full border border-slate-700 flex-shrink-0" />
-                        )}
-                        <span className="truncate capitalize">{emoData.title || emoKey}</span>
-                      </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    Recorded Emotion Takes ({char.recorded_count || Object.values(char.emotions || {}).filter(e => e.recorded).length}):
+                  </span>
+                  <button
+                    onClick={() => onOpenVoiceCloner(char.name)}
+                    className="text-[11px] text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-1 transition-colors"
+                  >
+                    + Add Take
+                  </button>
+                </div>
 
-                      {emoData.recorded ? (
+                {/* Show Recorded Takes */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {Object.entries(char.emotions || {})
+                    .filter(([_, emoData]) => emoData.recorded)
+                    .map(([emoKey, emoData]) => (
+                      <div
+                        key={emoKey}
+                        className="p-2.5 rounded-xl border bg-emerald-500/10 border-emerald-500/30 text-emerald-300 flex items-center justify-between text-xs"
+                      >
+                        <div className="flex items-center space-x-1.5 truncate">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                          <span className="truncate capitalize font-medium">{emoData.title || emoKey}</span>
+                        </div>
                         <button
                           onClick={() => onPlayAudio(emoData.audio_url, `${char.name} - ${emoKey}`)}
                           className="p-1 rounded-md text-emerald-400 hover:text-white hover:bg-emerald-500/20 transition-colors"
@@ -158,16 +160,14 @@ export default function CharacterVaultView({
                             <Play className="w-3.5 h-3.5 fill-current" />
                           )}
                         </button>
-                      ) : (
-                        <button
-                          onClick={() => onOpenVoiceCloner(char.name, emoKey)}
-                          className="text-[10px] text-sky-400 hover:text-sky-300 font-semibold px-1.5 py-0.5 rounded bg-sky-500/10 hover:bg-sky-500/20 transition-colors"
-                        >
-                          + Record
-                        </button>
-                      )}
+                      </div>
+                    ))}
+
+                  {Object.values(char.emotions || {}).filter(e => e.recorded).length === 0 && (
+                    <div className="col-span-2 p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-center text-xs text-slate-500">
+                      No custom takes recorded yet. Base voice will be modulated dynamically across all 121 delivery styles.
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             </div>

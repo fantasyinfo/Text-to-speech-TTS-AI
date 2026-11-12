@@ -10,7 +10,7 @@ import torch
 import gradio as gr
 from TTS.api import TTS
 
-from config import VOICES_DIR, PRESET_VOICES, FFMPEG_BIN, DEFAULT_PROJECT_NAME
+from config import VOICES_DIR, PRESET_VOICES, FFMPEG_BIN, DEFAULT_PROJECT_NAME, EMOTIONS
 from text_processor import preprocess_script_text
 from project_manager import get_project_dir
 
@@ -81,34 +81,134 @@ def build_tone_and_silence_filter(
             filters.append("highpass=f=100")
             filters.append("equalizer=f=2600:t=q:w=1.2:g=2.0")
 
-    # Emotion prosody modulation (applied to speech output)
+    # Emotion prosody & acoustic formant modulation (applied across 15 categories)
     if not is_reference and emotion:
         emo = emotion.lower().strip()
-        if emo == "happy":
+        emo_data = EMOTIONS.get(emo, {})
+        cat_id = emo_data.get("category_id", "")
+
+        # 1. Happiness & Positive Emotions
+        if cat_id == "happiness" or emo in {"happy", "joyful", "delighted", "playful", "proud", "hopeful", "grateful", "relieved"}:
             p_factor *= 1.05
             filters.append("equalizer=f=3500:t=q:w=1.2:g=2.0")
-        elif emo == "sad":
+            if emo in {"excited", "joyful"}:
+                p_factor *= 1.03
+                filters.append("equalizer=f=4000:t=q:w=1.2:g=2.5")
+
+        # 2. Sadness & Emotional Pain
+        elif cat_id == "sadness" or emo in {"sad", "heartbroken", "disappointed", "lonely", "hurt", "melancholic", "grief_stricken", "tearful", "regretful"}:
             p_factor *= 0.94
             filters.append("lowpass=f=6500")
             filters.append("equalizer=f=400:t=q:w=1.2:g=1.5")
-        elif emo == "angry":
+            if emo in {"heartbroken", "grief_stricken", "tearful"}:
+                p_factor *= 0.98
+                filters.append("vibrato=f=4.5:d=0.08")
+
+        # 3. Anger & Frustration
+        elif cat_id == "anger" or emo in {"angry", "furious", "irritated", "frustrated", "annoyed", "resentful", "sarcastic", "indignant"}:
             p_factor *= 1.04
             filters.append("acompressor=threshold=-16dB:ratio=4:attack=5:release=50")
             filters.append("equalizer=f=2500:t=q:w=1.2:g=2.5")
-        elif emo == "excited":
-            p_factor *= 1.08
-            filters.append("equalizer=f=4000:t=q:w=1.2:g=2.5")
-        elif emo == "whisper":
-            filters.append("highpass=f=320")
-            filters.append("equalizer=f=5500:t=q:w=1.0:g=5.0")
-        elif emo == "crying":
-            p_factor *= 0.95
-            filters.append("vibrato=f=5.2:d=0.15")
-            filters.append("equalizer=f=300:t=q:w=1.2:g=2.0")
-        elif emo == "tired":
-            p_factor *= 0.95
-        elif emo == "scared":
+            if emo in {"furious", "indignant"}:
+                p_factor *= 1.03
+                filters.append("equalizer=f=2200:t=q:w=1.0:g=3.5")
+
+        # 4. Fear, Anxiety & Nervousness
+        elif cat_id == "fear" or emo in {"afraid", "terrified", "scared", "anxious", "nervous", "panicked", "suspicious", "insecure", "cautious"}:
             p_factor *= 1.06
+            filters.append("highpass=f=120")
+            filters.append("equalizer=f=3000:t=q:w=1.2:g=2.0")
+            if emo in {"panicked", "terrified"}:
+                p_factor *= 1.04
+                filters.append("vibrato=f=5.5:d=0.10")
+
+        # 5. Surprise & Shock
+        elif cat_id == "surprise" or emo in {"surprised", "shocked", "astonished", "amazed", "stunned", "confused", "bewildered"}:
+            p_factor *= 1.07
+            filters.append("equalizer=f=3200:t=q:w=1.2:g=2.2")
+
+        # 6. Love, Care & Affection
+        elif cat_id == "love" or emo in {"loving", "affectionate", "compassionate", "empathetic", "caring", "tender", "reassuring", "nostalgic"}:
+            p_factor *= 0.98
+            filters.append("equalizer=f=320:t=q:w=1.2:g=2.0")
+            filters.append("lowpass=f=7500")
+
+        # 7. Confidence & Authority
+        elif cat_id == "confidence" or emo in {"confident", "assertive", "authoritative", "determined", "motivational", "persuasive", "dominant", "defiant"}:
+            p_factor *= 0.97
+            filters.append("equalizer=f=180:t=q:w=1.0:g=2.5")
+            filters.append("equalizer=f=2800:t=q:w=1.2:g=2.0")
+
+        # 8. Curiosity & Interest
+        elif cat_id == "curiosity" or emo in {"curious", "intrigued", "interested", "inquisitive", "wondering", "skeptical", "investigative"}:
+            p_factor *= 1.03
+            filters.append("equalizer=f=3000:t=q:w=1.2:g=1.8")
+
+        # 9. Calmness & Peace
+        elif cat_id == "calmness" or emo in {"calm", "peaceful", "relaxed", "serene", "patient", "content", "meditative"}:
+            p_factor *= 0.97
+            filters.append("lowpass=f=7200")
+            filters.append("equalizer=f=250:t=q:w=1.0:g=1.5")
+
+        # 10. Humor & Comedy
+        elif cat_id == "humor" or emo in {"funny", "amused_laughter", "chuckling", "giggling", "sarcastic_humor", "teasing", "witty", "deadpan"}:
+            p_factor *= 1.05
+            filters.append("equalizer=f=3600:t=q:w=1.2:g=2.2")
+            if emo in {"giggling", "amused_laughter", "laughing"}:
+                filters.append("vibrato=f=5.8:d=0.08")
+
+        # 11. Disgust & Disapproval
+        elif cat_id == "disgust" or emo in {"disgusted", "repulsed", "unimpressed", "disapproving", "contemptuous", "dismissive"}:
+            p_factor *= 0.95
+            filters.append("lowpass=f=6800")
+            filters.append("equalizer=f=1200:t=q:w=1.0:g=-2.0")
+
+        # 12. Shame, Guilt & Embarrassment
+        elif cat_id == "shame" or emo in {"guilty", "ashamed", "embarrassed", "regretful_shame", "remorseful", "humiliated"}:
+            p_factor *= 0.94
+            filters.append("lowpass=f=6200")
+            filters.append("equalizer=f=350:t=q:w=1.0:g=1.8")
+
+        # 13. Determination, Courage & Resilience
+        elif cat_id == "determination" or emo in {"brave", "courageous", "resilient", "persistent", "passionate", "inspired", "empowered"}:
+            p_factor *= 1.02
+            filters.append("acompressor=threshold=-15dB:ratio=4:attack=4:release=45")
+            filters.append("equalizer=f=200:t=q:w=1.0:g=2.2")
+
+        # 14. Confusion, Doubt & Indecision
+        elif cat_id == "confusion" or emo in {"doubtful", "hesitant", "uncertain", "indecisive", "puzzled", "distrustful"}:
+            p_factor *= 1.01
+            filters.append("equalizer=f=1500:t=q:w=1.2:g=1.5")
+
+        # 15. Storytelling & Communication Expressions
+        elif cat_id == "storytelling" or emo in {
+            "storytelling", "dramatic", "suspenseful", "whispering", "whisper", "shouting",
+            "crying", "laughing", "serious", "emotional", "secretive", "urgent",
+            "explanatory", "conversational", "reflective", "inspirational"
+        }:
+            if emo in {"whispering", "whisper"}:
+                filters.append("highpass=f=320")
+                filters.append("equalizer=f=5500:t=q:w=1.0:g=5.0")
+            elif emo == "shouting":
+                p_factor *= 1.07
+                filters.append("acompressor=threshold=-18dB:ratio=5:attack=2:release=40")
+                filters.append("equalizer=f=2200:t=q:w=1.0:g=3.0")
+            elif emo in {"dramatic", "suspenseful"}:
+                filters.append("equalizer=f=120:t=q:w=1.0:g=2.5")
+                filters.append("lowpass=f=7500")
+            elif emo == "crying":
+                p_factor *= 0.94
+                filters.append("vibrato=f=5.2:d=0.15")
+                filters.append("equalizer=f=300:t=q:w=1.2:g=2.0")
+            elif emo == "urgent":
+                p_factor *= 1.05
+                filters.append("equalizer=f=2600:t=q:w=1.2:g=2.5")
+            elif emo == "secretive":
+                filters.append("highpass=f=200")
+                filters.append("lowpass=f=6800")
+            elif emo == "reflective":
+                p_factor *= 0.96
+                filters.append("equalizer=f=300:t=q:w=1.0:g=1.8")
 
     if abs(p_factor - 1.0) > 0.01:
         p_rate = round(24000 * p_factor)

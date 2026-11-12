@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import {
   Play,
   Pause,
@@ -13,7 +13,11 @@ import {
   Film,
   Zap,
   RotateCcw,
-  Pencil
+  Pencil,
+  Search,
+  ChevronDown,
+  ChevronUp,
+  Layers
 } from 'lucide-react'
 
 export default function StudioView({
@@ -28,29 +32,60 @@ export default function StudioView({
   isPlaying,
   onOpenVoiceCloner,
   onEditVoice,
+  emotionsGuide = {},
+  emotionCategories = [],
 }) {
   const [scriptText, setScriptText] = useState(
     'दोपहर का 1 बजा है। प्रिया की desk पर मम्मी का बनाया गरमागरम टिफिन रखा है।'
   )
   const [selectedVoice, setSelectedVoice] = useState(voices[0] || '')
-  const [selectedEmotion, setSelectedEmotion] = useState('neutral')
+  const [selectedEmotion, setSelectedEmotion] = useState('storytelling')
+  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [emotionSearch, setEmotionSearch] = useState('')
+  const [isEmotionDrawerOpen, setIsEmotionDrawerOpen] = useState(false)
   const [removeSilence, setRemoveSilence] = useState(false)
   const [language, setLanguage] = useState('hi')
   const [speed, setSpeed] = useState(1.0)
   const [clipTitle, setClipTitle] = useState('')
 
-  const EMOTIONS_LIST = [
-    { id: 'neutral', label: 'Neutral', emoji: '🎙️', desc: 'Storyteller' },
-    { id: 'happy', label: 'Happy', emoji: '😊', desc: 'Upbeat' },
-    { id: 'sad', label: 'Sad', emoji: '😢', desc: 'Melancholic' },
-    { id: 'angry', label: 'Angry', emoji: '😡', desc: 'Intense' },
-    { id: 'excited', label: 'Excited', emoji: '⚡', desc: 'Energetic' },
-    { id: 'calm', label: 'Calm', emoji: '🧘', desc: 'Gentle' },
-    { id: 'whisper', label: 'Whisper', emoji: '🤫', desc: 'Secretive' },
-    { id: 'crying', label: 'Crying', emoji: '😭', desc: 'Emotional' },
-    { id: 'scared', label: 'Scared', emoji: '😨', desc: 'Suspense' },
-    { id: 'tired', label: 'Tired', emoji: '🥱', desc: 'Exhausted' },
+  const QUICK_EMOTIONS = [
+    { id: 'storytelling', label: 'Storytelling', emoji: '🎙️', desc: 'Natural Narration' },
+    { id: 'dramatic', label: 'Dramatic', emoji: '🎭', desc: 'Theatrical Delivery' },
+    { id: 'suspenseful', label: 'Suspenseful', emoji: '⚡', desc: 'Building Tension' },
+    { id: 'whispering', label: 'Whispering', emoji: '🤫', desc: 'Soft & Low Volume' },
+    { id: 'happy', label: 'Happy', emoji: '😊', desc: 'Pleasant & Joyful' },
+    { id: 'sad', label: 'Sad', emoji: '😢', desc: 'Sorrow & Grief' },
+    { id: 'angry', label: 'Angry', emoji: '😡', desc: 'Intense & Furious' },
+    { id: 'excited', label: 'Excited', emoji: '✨', desc: 'High Energy' },
+    { id: 'calm', label: 'Calm', emoji: '🧘', desc: 'Peaceful & Composed' },
+    { id: 'crying', label: 'Crying', emoji: '😭', desc: 'Emotional Distress' },
+    { id: 'urgent', label: 'Urgent', emoji: '⏱️', desc: 'Fast & Pressing' },
+    { id: 'funny', label: 'Funny', emoji: '😂', desc: 'Naturally Humorous' },
   ]
+
+  // Active emotion metadata
+  const activeEmotionInfo = emotionsGuide[selectedEmotion] || {
+    title: selectedEmotion.charAt(0).toUpperCase() + selectedEmotion.slice(1).replace('_', ' '),
+    meaning: 'Custom storytelling expression',
+    category_name: 'Custom',
+  }
+
+  // Filtered emotions
+  const allEmotionsList = useMemo(() => Object.values(emotionsGuide), [emotionsGuide])
+
+  const filteredEmotions = useMemo(() => {
+    return allEmotionsList.filter((emo) => {
+      if (emo.key === 'neutral' || emo.key === 'whisper') return false
+      const matchesCategory = selectedCategory === 'all' || emo.category_id === selectedCategory
+      const query = emotionSearch.toLowerCase().trim()
+      const matchesQuery =
+        !query ||
+        emo.title?.toLowerCase().includes(query) ||
+        emo.meaning?.toLowerCase().includes(query) ||
+        emo.category_name?.toLowerCase().includes(query)
+      return matchesCategory && matchesQuery
+    })
+  }, [allEmotionsList, selectedCategory, emotionSearch])
 
   // Sync selected voice if voices array updates
   React.useEffect(() => {
@@ -200,19 +235,23 @@ export default function StudioView({
               </div>
             </div>
 
-            {/* Emotion Selector */}
-            <div className="space-y-2 p-4 rounded-xl bg-slate-900/60 border border-slate-800/80">
+            {/* Emotion & Delivery Style Selector (15 Categories & 121 Emotions) */}
+            <div className="space-y-3 p-4 rounded-xl bg-slate-900/60 border border-slate-800/80">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-sky-400" /> Vocal Emotion Delivery
+                  <Sparkles className="w-3.5 h-3.5 text-sky-400" /> Vocal Emotion & Delivery Style
                 </span>
-                <span className="text-[11px] text-sky-400 font-medium capitalize">
-                  {EMOTIONS_LIST.find((e) => e.id === selectedEmotion)?.desc || selectedEmotion}
+                <span className="text-[11px] text-sky-400 font-medium">
+                  {activeEmotionInfo.title}{' '}
+                  <span className="text-slate-400 font-normal">
+                    ({activeEmotionInfo.meaning || activeEmotionInfo.desc || 'Natural narration'})
+                  </span>
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1">
-                {EMOTIONS_LIST.map((emo) => {
+              {/* Quick Storytelling Presets */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                {QUICK_EMOTIONS.map((emo) => {
                   const isSel = selectedEmotion === emo.id
                   return (
                     <button
@@ -231,6 +270,103 @@ export default function StudioView({
                   )
                 })}
               </div>
+
+              {/* Toggle to browse all 15 categories & 121 delivery styles */}
+              <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setIsEmotionDrawerOpen(!isEmotionDrawerOpen)}
+                  className="text-xs text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-1.5 transition-colors"
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>
+                    {isEmotionDrawerOpen
+                      ? 'Hide Detailed Emotions Catalog'
+                      : 'Browse All 15 Categories & 121 Emotions'}
+                  </span>
+                  {isEmotionDrawerOpen ? (
+                    <ChevronUp className="w-3.5 h-3.5" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  )}
+                </button>
+                <span className="text-[10px] text-slate-500">
+                  {allEmotionsList.length > 0 ? `${allEmotionsList.length} Styles Available` : ''}
+                </span>
+              </div>
+
+              {/* Collapsible 15-Category & 121-Emotion Browser */}
+              {isEmotionDrawerOpen && (
+                <div className="space-y-3 pt-2 border-t border-slate-800/80 animate-in fade-in duration-200">
+                  {/* Search Input */}
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+                    <input
+                      type="text"
+                      value={emotionSearch}
+                      onChange={(e) => setEmotionSearch(e.target.value)}
+                      placeholder="Search all 121 emotions (e.g. whisper, heartbroken, sarcastic, urgent, joyful)..."
+                      className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700/80 text-xs text-white placeholder-slate-500 outline-none focus:border-sky-500"
+                    />
+                  </div>
+
+                  {/* Category Pills */}
+                  <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCategory('all')}
+                      className={`px-2.5 py-1 rounded-full whitespace-nowrap text-[11px] font-medium transition-all ${
+                        selectedCategory === 'all'
+                          ? 'bg-sky-500 text-white font-semibold shadow-sm'
+                          : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      All Categories
+                    </button>
+                    {emotionCategories.map((cat) => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setSelectedCategory(cat.id)}
+                        className={`px-2.5 py-1 rounded-full whitespace-nowrap text-[11px] font-medium transition-all ${
+                          selectedCategory === cat.id
+                            ? 'bg-sky-500 text-white font-semibold shadow-sm'
+                            : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        {cat.icon} {cat.name.replace(/^\d+\.\s*/, '')}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Filtered Emotions Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-60 overflow-y-auto pr-1">
+                    {filteredEmotions.map((emo) => {
+                      const isSel = selectedEmotion === emo.key
+                      return (
+                        <button
+                          key={emo.key}
+                          type="button"
+                          onClick={() => setSelectedEmotion(emo.key)}
+                          className={`p-2.5 rounded-xl border text-left transition-all ${
+                            isSel
+                              ? 'bg-sky-500/20 border-sky-500/50 text-white shadow-sm ring-1 ring-sky-500/30'
+                              : 'bg-slate-950/70 border-slate-800/80 text-slate-300 hover:border-slate-700 hover:bg-slate-900'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-xs text-slate-100">{emo.title}</span>
+                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 uppercase font-mono">
+                              {emo.category_id}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">{emo.meaning}</p>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Speed Control Slider & Presets */}

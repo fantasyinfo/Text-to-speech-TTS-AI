@@ -23,6 +23,7 @@ from config import (
     OUTPUTS_DIR,
     DEFAULT_PROJECT_NAME,
     EMOTIONS,
+    EMOTION_CATEGORIES,
     PRESET_VOICES,
     FFMPEG_BIN,
 )
@@ -217,8 +218,8 @@ def get_audio_stream(project_name: str, filename: str):
 # ---------------------------------------------------------
 @app.get("/api/emotions-guide")
 def get_emotions_guide():
-    """Returns the 10 emotion guidelines with acting tips and bilingual scripts."""
-    return {"emotions": EMOTIONS}
+    """Returns the 15 emotion categories & 121 delivery styles with acting tips and scripts."""
+    return {"emotions": EMOTIONS, "categories": EMOTION_CATEGORIES}
 
 
 @app.get("/api/characters")

@@ -19,6 +19,7 @@ export default function App() {
   const [voices, setVoices] = useState([])
   const [characters, setCharacters] = useState([])
   const [emotionsGuide, setEmotionsGuide] = useState({})
+  const [emotionCategories, setEmotionCategories] = useState([])
   const [stats, setStats] = useState(null)
   const [files, setFiles] = useState([])
   const [lastGenerated, setLastGenerated] = useState(null)
@@ -82,6 +83,9 @@ export default function App() {
       const emoData = await emoRes.json()
       if (emoData.emotions) {
         setEmotionsGuide(emoData.emotions)
+      }
+      if (emoData.categories) {
+        setEmotionCategories(emoData.categories)
       }
 
       // 5. Dashboard Stats
@@ -489,6 +493,8 @@ export default function App() {
               isPlaying={isPlaying}
               onOpenVoiceCloner={() => handleOpenVoiceCloner()}
               onEditVoice={handleOpenEditCharacter}
+              emotionsGuide={emotionsGuide}
+              emotionCategories={emotionCategories}
             />
           )}
 

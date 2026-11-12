@@ -50,6 +50,17 @@ export default function EditCharacterModal({
   const audioChunksRef = useRef([])
   const timerRef = useRef(null)
 
+  const groupedEmotions = React.useMemo(() => {
+    const groups = {}
+    Object.entries(emotionsGuide || {}).forEach(([key, data]) => {
+      if (key === 'neutral' || key === 'whisper') return
+      const catName = data.category_name || '15. Storytelling & Delivery'
+      if (!groups[catName]) groups[catName] = []
+      groups[catName].push({ key, ...data })
+    })
+    return groups
+  }, [emotionsGuide])
+
   useEffect(() => {
     if (character) {
       setName(character.name || '')
@@ -373,13 +384,23 @@ export default function EditCharacterModal({
                   <select
                     value={selectedEmotion}
                     onChange={(e) => setSelectedEmotion(e.target.value)}
-                    className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-xs text-slate-200 capitalize"
+                    className="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-200"
                   >
-                    {Object.keys(emotionsGuide || { neutral: {} }).map((k) => (
-                      <option key={k} value={k}>
-                        {k.charAt(0).toUpperCase() + k.slice(1)}
-                      </option>
-                    ))}
+                    {Object.keys(groupedEmotions).length > 0
+                      ? Object.entries(groupedEmotions).map(([catName, list]) => (
+                          <optgroup key={catName} label={catName} className="bg-slate-950 font-bold text-sky-400">
+                            {list.map((emo) => (
+                              <option key={emo.key} value={emo.key} className="bg-slate-900 text-white font-normal">
+                                {emo.title} — {emo.meaning}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))
+                      : Object.keys(emotionsGuide || { neutral: {} }).map((k) => (
+                          <option key={k} value={k}>
+                            {emotionsGuide[k]?.title || k}
+                          </option>
+                        ))}
                   </select>
                 </div>
 

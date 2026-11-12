@@ -4,6 +4,7 @@ import time
 import tempfile
 import subprocess
 from pathlib import Path
+from typing import Optional, List, Dict, Any, Tuple
 import numpy as np
 import soundfile as sf
 import torch
@@ -341,6 +342,237 @@ def get_safe_max_new_tokens(text: str, speed: float) -> int | None:
     return None
 
 
+def resolve_voice_conditioning(
+    voice_choice: str,
+    emotion: str,
+    temp_dir_path: Path,
+    remove_silence: bool = False,
+    custom_upload: Optional[str] = None,
+    progress_callback=None,
+) -> tuple[Optional[str], Optional[str], Optional[str]]:
+    """
+    Resolves reference audio (speaker_wav or speaker_name) and out_tone_filter
+    based on character persona, age, gender, and emotion takes.
+    Returns (speaker_wav, speaker_name, out_tone_filter).
+    """
+    char_name = ""
+    meta = {"age": 30, "age_group": "adult", "gender": "male"}
+
+    if "Custom:" in voice_choice or "[" in voice_choice:
+        m = re.search(r"Custom:\s*([^(—\[]+)", voice_choice)
+        if m:
+            char_name = m.group(1).strip()
+        elif "[" in voice_choice:
+            file_stem = Path(re.search(r"\[(.*?)\]", voice_choice).group(1)).stem
+            char_name = file_stem.split("_")[0].replace("-", " ").title()
+
+        from voice_manager import get_character_metadata
+        if char_name:
+            meta = get_character_metadata(char_name)
+
+    age_group = meta.get("age_group", "adult")
+    gender = meta.get("gender", "male")
+
+    ref_tone_filter = build_tone_and_silence_filter(
+        age_group=age_group,
+        gender=gender,
+        emotion="",
+        remove_silence=False,
+        is_reference=True,
+    )
+
+    out_tone_filter = build_tone_and_silence_filter(
+        age_group=age_group,
+        gender=gender,
+        emotion=emotion,
+        remove_silence=remove_silence,
+        is_reference=False,
+    )
+
+    speaker_wav = None
+    speaker_name = None
+
+    if "[" in voice_choice and voice_choice.endswith("]"):
+        match = re.search(r"\[(.*?)\]", voice_choice)
+        if match:
+            chosen_filename = match.group(1).strip()
+            ref_file = None
+            if emotion and emotion.lower() != "neutral" and char_name:
+                char_clean = re.sub(r"[^a-zA-Z0-9_-]", "_", char_name.lower())
+                emo_file = VOICES_DIR / f"{char_clean}_{emotion.lower()}.wav"
+                if emo_file.exists():
+                    ref_file = emo_file
+                else:
+                    from config import get_emotion_anchor
+                    anchor = get_emotion_anchor(emotion)
+                    if anchor and anchor != emotion.lower():
+                        anchor_file = VOICES_DIR / f"{char_clean}_{anchor}.wav"
+                        if anchor_file.exists():
+                            ref_file = anchor_file
+
+            if not ref_file:
+                fallback_file = VOICES_DIR / chosen_filename
+                if fallback_file.exists():
+                    ref_file = fallback_file
+
+            if ref_file and ref_file.exists():
+                if progress_callback:
+                    progress_callback(10, f"Conditioning {age_group.title()} {gender.title()} timbre from {ref_file.name}...", 0, 0, 12.0)
+                speaker_wav = prepare_reference_audio(str(ref_file), temp_dir_path, tone_filter=ref_tone_filter)
+    elif voice_choice.startswith("Custom Clone: "):
+        filename = voice_choice.replace("Custom Clone: ", "").strip()
+        ref_file = VOICES_DIR / filename
+        if ref_file.exists():
+            speaker_wav = prepare_reference_audio(str(ref_file), temp_dir_path, tone_filter=ref_tone_filter)
+    elif "Preset:" in voice_choice:
+        clean_preset = voice_choice.replace("🎙️ Preset: ", "").strip()
+        speaker_name = PRESET_VOICES.get(clean_preset, "Damien Black")
+    elif custom_upload is not None:
+        speaker_wav = prepare_reference_audio(custom_upload, temp_dir_path, tone_filter=ref_tone_filter)
+    else:
+        speaker_name = "Damien Black"
+
+    return speaker_wav, speaker_name, out_tone_filter
+
+
+def _generate_multi_scene_track(
+    scenes: list[dict],
+    voice_choice: str,
+    language_label: str = "Hindi (hi)",
+    speed: float = 1.0,
+    project_name: str = DEFAULT_PROJECT_NAME,
+    clip_title: str = "",
+    remove_silence: bool = False,
+    progress_callback=None,
+) -> tuple[str, str, str]:
+    """
+    Synthesizes a multi-scene, multi-emotion story.
+    Generates each scene take with its custom emotion & voice prosody, saves individual scene MP3s
+    into outputs/<project>/, and concatenates all scenes into a master broadcast MP3.
+    """
+    tts = get_tts_model()
+    project_dir = get_project_dir(project_name)
+    lang_code = "hi" if "Hindi" in language_label else "en"
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    start_time = time.time()
+
+    clean_title = re.sub(r"[^a-zA-Z0-9_\- ]", "", clip_title.strip()).replace(" ", "_")[:35] if clip_title else "Story"
+    final_master_mp3 = project_dir / f"{clean_title}_Master_{timestamp}.mp3"
+
+    total_scenes = len(scenes)
+    sr = 24000
+    inter_scene_pause = int(sr * 0.10) if remove_silence else int(sr * 0.42)
+    pause_array = np.zeros(inter_scene_pause, dtype=np.float32)
+
+    master_waveforms = []
+    created_stem_files = []
+
+    with tempfile.TemporaryDirectory() as temp_work_dir:
+        temp_dir_path = Path(temp_work_dir)
+
+        for sc_idx, sc in enumerate(scenes):
+            sc_num = sc_idx + 1
+            sc_text = sc.get("text", "").strip()
+            sc_emotion = sc.get("emotion") or "storytelling"
+            sc_voice = sc.get("voice") or voice_choice
+
+            pct_start = int(8 + (sc_idx / total_scenes) * 82)
+            est_eta = max(1.5, round((total_scenes - sc_idx) * 6.5, 1))
+
+            if progress_callback:
+                progress_callback(
+                    pct_start,
+                    f"Synthesizing Scene {sc_num}/{total_scenes} [{sc_emotion.title()}]: {sc_text[:35]}...",
+                    sc_num,
+                    total_scenes,
+                    est_eta,
+                )
+
+            speaker_wav, speaker_name, sc_filter = resolve_voice_conditioning(
+                voice_choice=sc_voice,
+                emotion=sc_emotion,
+                temp_dir_path=temp_dir_path,
+                remove_silence=remove_silence,
+            )
+
+            processed_text = preprocess_script_text(sc_text, lang_code)
+            raw_sentences = tts.synthesizer.split_into_sentences(processed_text, lang_code)
+            raw_sentences = [s.strip() for s in raw_sentences if s and s.strip()] or [processed_text]
+            sentences = merge_short_sentence_chunks(raw_sentences, min_words=5, min_chars=24) or raw_sentences
+
+            scene_audio_chunks = []
+            sentence_pause = np.zeros(int(sr * 0.05 if remove_silence else sr * 0.25), dtype=np.float32)
+
+            for s_i, sen in enumerate(sentences):
+                extra_kwargs = {
+                    "temperature": 0.70,
+                    "repetition_penalty": 10.0,
+                }
+                safe_tokens = get_safe_max_new_tokens(sen, float(speed))
+                if safe_tokens is not None:
+                    extra_kwargs["max_new_tokens"] = safe_tokens
+
+                if speaker_wav:
+                    chunk = tts.tts(
+                        text=sen,
+                        speaker_wav=speaker_wav,
+                        language=lang_code,
+                        speed=float(speed),
+                        split_sentences=False,
+                        **extra_kwargs,
+                    )
+                else:
+                    chunk = tts.tts(
+                        text=sen,
+                        speaker=speaker_name,
+                        language=lang_code,
+                        speed=float(speed),
+                        split_sentences=False,
+                        **extra_kwargs,
+                    )
+
+                chunk = trim_tail_silence(chunk, sr=sr)
+                scene_audio_chunks.append(chunk)
+                if s_i < len(sentences) - 1:
+                    scene_audio_chunks.append(sentence_pause)
+
+            scene_waveform = np.concatenate(scene_audio_chunks)
+
+            # Export individual scene stem MP3
+            stem_filename = f"Part_{sc_num:02d}_{clean_title}_Scene_{sc_num:02d}_{sc_emotion}.mp3"
+            stem_path = project_dir / stem_filename
+            scene_temp_wav = temp_dir_path / f"scene_{sc_num}.wav"
+            sf.write(str(scene_temp_wav), scene_waveform, sr)
+
+            convert_wav_to_mp3(scene_temp_wav, stem_path, tone_filter=sc_filter, remove_silence=remove_silence)
+            created_stem_files.append(stem_filename)
+
+            # Append to master sequence
+            master_waveforms.append(scene_waveform)
+            if sc_idx < total_scenes - 1:
+                master_waveforms.append(pause_array)
+
+        # Assemble full story master track
+        if progress_callback:
+            progress_callback(93, "Assembling Full Multi-Scene Story Master...", total_scenes, total_scenes, 2.0)
+
+        master_full_waveform = np.concatenate(master_waveforms)
+        master_temp_wav = temp_dir_path / "master_temp.wav"
+        sf.write(str(master_temp_wav), master_full_waveform, sr)
+
+        if progress_callback:
+            progress_callback(97, "Mastering 192kbps Broadcast MP3...", total_scenes, total_scenes, 1.0)
+
+        convert_wav_to_mp3(master_temp_wav, final_master_mp3, tone_filter=None, remove_silence=remove_silence)
+        duration = round(time.time() - start_time, 1)
+
+    if progress_callback:
+        progress_callback(100, f"Full Story Ready ({duration}s) — {total_scenes} Scenes Generated!", total_scenes, total_scenes, 0.0)
+
+    status_msg = f"✅ Generated {total_scenes}-scene story in {duration}s | Master: '{final_master_mp3.name}' ({len(created_stem_files)} scene stems saved)"
+    return str(final_master_mp3), str(final_master_mp3), status_msg
+
+
 def generate_voiceover_track(
     script_text: str,
     voice_choice: str,
@@ -355,14 +587,28 @@ def generate_voiceover_track(
 ) -> tuple[str, str, str]:
     """
     Synthesizes script into broadcast-quality 192kbps MP3 stored inside outputs/<project_name>/.
-    Automatically adjusts voice tone based on character age and gender, and applies selected emotion.
-    Supports optional progress_callback(percent: int, step: str, current_sentence: int, total_sentences: int, eta_seconds: float)
-    Returns (mp3_path_for_player, mp3_path_for_download, status_log).
+    Automatically parses multi-scene bracketed cues ([Narrator – Calm], [Curious], etc.) if present.
     """
     if not script_text or not script_text.strip():
         raise gr.Error("Please paste your script text before generating.")
     if not voice_choice:
         raise gr.Error("Please select a character voice.")
+
+    # Check for multi-scene bracket cues in script
+    from script_parser import parse_script_to_scenes, has_bracketScenes
+    if has_bracketScenes(script_text):
+        parsed_scenes = parse_script_to_scenes(script_text, default_voice=voice_choice, default_emotion=emotion)
+        if len(parsed_scenes) > 1:
+            return _generate_multi_scene_track(
+                scenes=parsed_scenes,
+                voice_choice=voice_choice,
+                language_label=language_label,
+                speed=speed,
+                project_name=project_name,
+                clip_title=clip_title,
+                remove_silence=remove_silence,
+                progress_callback=progress_callback,
+            )
 
     if progress_callback:
         progress_callback(3, "Initializing Neural Audio Engine...", 0, 0, 15.0)
@@ -391,94 +637,14 @@ def generate_voiceover_track(
 
     with tempfile.TemporaryDirectory() as temp_work_dir:
         temp_dir_path = Path(temp_work_dir)
-        speaker_wav = None
-        speaker_name = None
-
-        char_name = ""
-        meta = {"age": 30, "age_group": "adult", "gender": "male"}
-
-        # Extract character name and metadata
-        if "Custom:" in voice_choice or "[" in voice_choice:
-            m = re.search(r"Custom:\s*([^(—\[]+)", voice_choice)
-            if m:
-                char_name = m.group(1).strip()
-            elif "[" in voice_choice:
-                file_stem = Path(re.search(r"\[(.*?)\]", voice_choice).group(1)).stem
-                char_name = file_stem.split("_")[0].replace("-", " ").title()
-
-            from voice_manager import get_character_metadata
-            if char_name:
-                meta = get_character_metadata(char_name)
-
-        age_group = meta.get("age_group", "adult")
-        gender = meta.get("gender", "male")
-
-        # Build tone filter for reference conditioning
-        ref_tone_filter = build_tone_and_silence_filter(
-            age_group=age_group,
-            gender=gender,
-            emotion="",
-            remove_silence=False,
-            is_reference=True,
-        )
-
-        # Build tone filter for output master
-        out_tone_filter = build_tone_and_silence_filter(
-            age_group=age_group,
-            gender=gender,
+        speaker_wav, speaker_name, out_tone_filter = resolve_voice_conditioning(
+            voice_choice=voice_choice,
             emotion=emotion,
+            temp_dir_path=temp_dir_path,
             remove_silence=remove_silence,
-            is_reference=False,
+            custom_upload=custom_upload,
+            progress_callback=progress_callback,
         )
-
-        if "[" in voice_choice and voice_choice.endswith("]"):
-            match = re.search(r"\[(.*?)\]", voice_choice)
-            if match:
-                chosen_filename = match.group(1).strip()
-                ref_file = None
-                # If specific emotion requested, check exact take, then mapped anchor take, then base voice
-                if emotion and emotion.lower() != "neutral" and char_name:
-                    char_clean = re.sub(r"[^a-zA-Z0-9_-]", "_", char_name.lower())
-                    # 1. Check exact requested emotion take (e.g. char_heartbroken.wav)
-                    emo_file = VOICES_DIR / f"{char_clean}_{emotion.lower()}.wav"
-                    if emo_file.exists():
-                        ref_file = emo_file
-                    else:
-                        # 2. Check mapped foundation anchor take (e.g. sad for heartbroken, happy for delighted, angry for furious)
-                        from config import get_emotion_anchor
-                        anchor = get_emotion_anchor(emotion)
-                        if anchor and anchor != emotion.lower():
-                            anchor_file = VOICES_DIR / f"{char_clean}_{anchor}.wav"
-                            if anchor_file.exists():
-                                ref_file = anchor_file
-
-                # 3. Fallback to base voice take or chosen file
-                if not ref_file:
-                    fallback_file = VOICES_DIR / chosen_filename
-                    if fallback_file.exists():
-                        ref_file = fallback_file
-
-                if ref_file and ref_file.exists():
-                    if progress_callback:
-                        desc = f"Conditioning {age_group.title()} {gender.title()} vocal timbre from {ref_file.name}..."
-                        progress_callback(10, desc, 0, 0, 12.0)
-                    speaker_wav = prepare_reference_audio(str(ref_file), temp_dir_path, tone_filter=ref_tone_filter)
-        elif voice_choice.startswith("Custom Clone: "):
-            filename = voice_choice.replace("Custom Clone: ", "").strip()
-            ref_file = VOICES_DIR / filename
-            if ref_file.exists():
-                if progress_callback:
-                    progress_callback(10, f"Conditioning vocal timbre from {filename}...", 0, 0, 12.0)
-                speaker_wav = prepare_reference_audio(str(ref_file), temp_dir_path, tone_filter=ref_tone_filter)
-        elif "Preset:" in voice_choice:
-            clean_preset = voice_choice.replace("🎙️ Preset: ", "").strip()
-            speaker_name = PRESET_VOICES.get(clean_preset, "Damien Black")
-        elif custom_upload is not None:
-            if progress_callback:
-                progress_callback(10, "Normalizing custom uploaded voice sample...", 0, 0, 12.0)
-            speaker_wav = prepare_reference_audio(custom_upload, temp_dir_path, tone_filter=ref_tone_filter)
-        else:
-            speaker_name = "Damien Black"
 
         print(f"Generating audio in [{project_name}] for lang: {lang_code}, voice: {voice_choice}, emotion: {emotion}, speed: {speed}...")
         start_time = time.time()

@@ -10,7 +10,7 @@ import time
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Dict, Any
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
@@ -86,6 +86,12 @@ class RenameAudioRequest(BaseModel):
     new_filename: str
 
 
+class ParseScriptRequest(BaseModel):
+    text: str
+    default_voice: Optional[str] = ""
+    default_emotion: Optional[str] = "storytelling"
+
+
 class GenerateAudioRequest(BaseModel):
     script_text: str
     voice_choice: str
@@ -95,6 +101,7 @@ class GenerateAudioRequest(BaseModel):
     clip_title: Optional[str] = ""
     emotion: Optional[str] = "neutral"
     remove_silence: Optional[bool] = False
+    scenes: Optional[List[Dict[str, Any]]] = None
 
 
 class UpdateCharacterMetadataRequest(BaseModel):
@@ -487,17 +494,43 @@ def update_character_metadata_api(char_name: str, req: UpdateCharacterMetadataRe
 
 
 # ---------------------------------------------------------
+# Script Parser APIs (Multi-Scene & Emotion Detection)
+# ---------------------------------------------------------
+@app.post("/api/script/parse")
+def parse_script_api(req: ParseScriptRequest):
+    """Parses bracketed script cues ([Narrator – Calm], [Curious], etc.) into structured scenes."""
+    from script_parser import parse_script_to_scenes, has_bracket_scenes
+    voices = get_available_voices()
+    scenes = parse_script_to_scenes(
+        script_text=req.text,
+        default_voice=req.default_voice or "",
+        default_emotion=req.default_emotion or "storytelling",
+        available_voices=voices,
+    )
+    return {
+        "has_bracket_scenes": has_bracket_scenes(req.text),
+        "scenes_count": len(scenes),
+        "scenes": scenes,
+    }
+
+
+# ---------------------------------------------------------
 # Background Synthesis Job APIs (Non-Blocking with ETA & SSE)
 # ---------------------------------------------------------
 @app.post("/api/jobs/generate")
 def api_create_job(req: GenerateAudioRequest):
-    if not req.script_text or not req.script_text.strip():
+    script_text = req.script_text
+    if req.scenes and len(req.scenes) > 1:
+        from script_parser import format_scenes_to_script
+        script_text = format_scenes_to_script(req.scenes)
+
+    if not script_text or not script_text.strip():
         raise HTTPException(status_code=400, detail="Script text cannot be empty.")
     if not req.voice_choice:
         raise HTTPException(status_code=400, detail="Please select a character voice.")
 
     job_id = create_synthesis_job(
-        script_text=req.script_text,
+        script_text=script_text,
         voice_choice=req.voice_choice,
         language=req.language,
         speed=req.speed,

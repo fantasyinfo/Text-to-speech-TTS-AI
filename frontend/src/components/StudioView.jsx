@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import {
   Play,
   Pause,
@@ -17,8 +17,38 @@ import {
   Search,
   ChevronDown,
   ChevronUp,
-  Layers
+  Layers,
+  Clapperboard,
+  Plus,
+  ArrowUp,
+  ArrowDown,
+  Trash2,
+  Wand2,
+  User,
+  Check,
+  SplitSquareVertical
 } from 'lucide-react'
+import {
+  parseScriptToScenes,
+  formatScenesToScript,
+  hasBracketScenes,
+  matchEmotionKey,
+} from '../utils/scriptParser'
+
+const DEFAULT_SAMPLE_SCRIPT = `[Narrator – Calm, descriptive, storytelling]
+दोपहर का 1 बजा है। प्रिया की desk पर मम्मी का बनाया गरमागरम टिफिन रखा है।
+
+[Curious, suspenseful]
+लेकिन तभी उसके फोन पर एक notification आया...
+
+[Excited, promotional tone]
+"आज की थाली, सिर्फ ₹69 में!"
+
+[Casual, slightly careless]
+प्रिया ने टिफिन की तरफ देखा भी नहीं। एक क्लिक किया और order हो गया!
+
+[Surprised, slightly shocked]
+लेकिन जब payment करने की बारी आई, तो bill निकला ₹99!`
 
 export default function StudioView({
   voices,
@@ -35,9 +65,8 @@ export default function StudioView({
   emotionsGuide = {},
   emotionCategories = [],
 }) {
-  const [scriptText, setScriptText] = useState(
-    'दोपहर का 1 बजा है। प्रिया की desk पर मम्मी का बनाया गरमागरम टिफिन रखा है।'
-  )
+  const [scriptText, setScriptText] = useState(DEFAULT_SAMPLE_SCRIPT)
+  const [editorMode, setEditorMode] = useState('text') // 'text' | 'director'
   const [selectedVoice, setSelectedVoice] = useState(voices[0] || '')
   const [selectedEmotion, setSelectedEmotion] = useState('storytelling')
   const [selectedCategory, setSelectedCategory] = useState('all')
@@ -47,6 +76,17 @@ export default function StudioView({
   const [language, setLanguage] = useState('hi')
   const [speed, setSpeed] = useState(1.0)
   const [clipTitle, setClipTitle] = useState('')
+
+  // Multi-scene parsed list
+  const [scenes, setScenes] = useState(() =>
+    parseScriptToScenes(DEFAULT_SAMPLE_SCRIPT, selectedVoice || voices[0] || '', selectedEmotion, emotionsGuide, voices)
+  )
+
+  // Real-time detected scenes when editing in raw text mode
+  const detectedScenes = useMemo(() => {
+    if (!hasBracketScenes(scriptText)) return []
+    return parseScriptToScenes(scriptText, selectedVoice || voices[0] || '', selectedEmotion, emotionsGuide, voices)
+  }, [scriptText, selectedVoice, selectedEmotion, emotionsGuide, voices])
 
   const QUICK_EMOTIONS = [
     { id: 'storytelling', label: 'Storytelling', emoji: '🎙️', desc: 'Natural Narration' },
@@ -88,17 +128,126 @@ export default function StudioView({
   }, [allEmotionsList, selectedCategory, emotionSearch])
 
   // Sync selected voice if voices array updates
-  React.useEffect(() => {
+  useEffect(() => {
     if (!selectedVoice && voices.length > 0) {
       setSelectedVoice(voices[0])
     }
   }, [voices, selectedVoice])
 
+  // Director Mode Scene Handlers
+  const handleSwitchToDirector = () => {
+    const parsed = parseScriptToScenes(scriptText, selectedVoice || voices[0] || '', selectedEmotion, emotionsGuide, voices)
+    setScenes(parsed)
+    setEditorMode('director')
+  }
+
+  const handleSwitchToText = () => {
+    const formatted = formatScenesToScript(scenes)
+    setScriptText(formatted)
+    setEditorMode('text')
+  }
+
+  const handleSceneTextChange = (idx, newText) => {
+    setScenes((prev) => {
+      const updated = [...prev]
+      updated[idx] = { ...updated[idx], text: newText }
+      return updated
+    })
+  }
+
+  const handleSceneEmotionChange = (idx, newEmotion) => {
+    setScenes((prev) => {
+      const updated = [...prev]
+      updated[idx] = { ...updated[idx], emotion: newEmotion }
+      return updated
+    })
+  }
+
+  const handleSceneVoiceChange = (idx, newVoice) => {
+    setScenes((prev) => {
+      const updated = [...prev]
+      updated[idx] = { ...updated[idx], voice: newVoice }
+      return updated
+    })
+  }
+
+  const handleAddScene = () => {
+    setScenes((prev) => [
+      ...prev,
+      {
+        id: `scene_${prev.length + 1}_${Date.now()}`,
+        index: prev.length + 1,
+        sceneTitle: `Scene ${String(prev.length + 1).padStart(2, '0')}`,
+        speakerRaw: '',
+        emotionRaw: selectedEmotion,
+        voice: selectedVoice || voices[0] || '',
+        emotion: selectedEmotion,
+        text: '',
+      },
+    ])
+  }
+
+  const handleDeleteScene = (idx) => {
+    if (scenes.length <= 1) return
+    setScenes((prev) => {
+      const filtered = prev.filter((_, i) => i !== idx)
+      return filtered.map((sc, i) => ({
+        ...sc,
+        index: i + 1,
+        sceneTitle: `Scene ${String(i + 1).padStart(2, '0')}`,
+      }))
+    })
+  }
+
+  const handleMoveScene = (idx, direction) => {
+    const targetIdx = idx + direction
+    if (targetIdx < 0 || targetIdx >= scenes.length) return
+    setScenes((prev) => {
+      const updated = [...prev]
+      const temp = updated[idx]
+      updated[idx] = updated[targetIdx]
+      updated[targetIdx] = temp
+      return updated.map((sc, i) => ({
+        ...sc,
+        index: i + 1,
+        sceneTitle: `Scene ${String(i + 1).padStart(2, '0')}`,
+      }))
+    })
+  }
+
+  const handlePasteScript = (e) => {
+    const pasted = e.clipboardData?.getData('text') || ''
+    if (hasBracketScenes(pasted)) {
+      const parsed = parseScriptToScenes(pasted, selectedVoice || voices[0] || '', selectedEmotion, emotionsGuide, voices)
+      if (parsed.length > 1) {
+        setScenes(parsed)
+      }
+    }
+  }
+
+  const handlePreviewSingleScene = (scene, e) => {
+    e?.preventDefault()
+    e?.stopPropagation()
+    if (!scene.text?.trim()) return
+    onGenerateAudio({
+      script_text: scene.text,
+      voice_choice: scene.voice || selectedVoice || voices[0],
+      language,
+      speed,
+      project_name: activeProject,
+      clip_title: `${clipTitle || 'Scene'}_${scene.index}_${scene.emotion}`,
+      emotion: scene.emotion,
+      remove_silence: removeSilence,
+    })
+  }
+
   const handleGenerate = (e) => {
     e.preventDefault()
-    if (!scriptText.trim()) return
+    const textToSubmit = editorMode === 'director' ? formatScenesToScript(scenes) : scriptText
+    if (!textToSubmit.trim()) return
+
     onGenerateAudio({
-      script_text: scriptText,
+      script_text: textToSubmit,
       voice_choice: selectedVoice || voices[0],
       language,
       speed,
@@ -106,10 +255,12 @@ export default function StudioView({
       clip_title: clipTitle,
       emotion: selectedEmotion,
       remove_silence: removeSilence,
+      scenes: editorMode === 'director' ? scenes : undefined,
     })
   }
 
   const speedPresets = [0.85, 1.0, 1.15, 1.3, 1.5, 2.0]
+  const effectiveScenesCount = editorMode === 'director' ? scenes.length : detectedScenes.length
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -141,12 +292,44 @@ export default function StudioView({
         {/* LEFT COLUMN: Input & Generation Settings */}
         <div className="lg:col-span-8 space-y-5">
           <form onSubmit={handleGenerate} className="p-6 rounded-2xl bg-[#0d1322] border border-slate-800 space-y-5 shadow-xl">
-            {/* Dialogue / Script Input */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <FileAudio className="w-3.5 h-3.5 text-sky-400" /> Script / Dialogue (संवाद)
-                </label>
+            {/* Dialogue / Script Input & Smart Scene Director */}
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center space-x-2">
+                  <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <Clapperboard className="w-4 h-4 text-sky-400" /> Story Script & Scene Director
+                  </label>
+
+                  {/* Mode Switcher Tabs */}
+                  <div className="inline-flex p-0.5 rounded-lg bg-slate-900 border border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => handleSwitchToText()}
+                      className={`px-2.5 py-1 text-xs rounded-md font-medium transition-all ${
+                        editorMode === 'text'
+                          ? 'bg-sky-500 text-white font-semibold shadow-sm'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      📝 Raw Script
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSwitchToDirector()}
+                      className={`px-2.5 py-1 text-xs rounded-md font-medium transition-all flex items-center gap-1.5 ${
+                        editorMode === 'director'
+                          ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-semibold shadow-sm'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      <span>🎬 Scene Director</span>
+                      <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/20 text-white font-mono font-bold">
+                        {effectiveScenesCount}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
                 <div className="flex items-center space-x-2">
                   <div className="inline-flex p-0.5 rounded-lg bg-slate-800 border border-slate-700">
                     <button
@@ -168,17 +351,204 @@ export default function StudioView({
                       🇬🇧 English
                     </button>
                   </div>
-                  <span className="text-[11px] text-slate-500">{scriptText.length} chars</span>
+                  <span className="text-[11px] text-slate-500 font-mono">
+                    {editorMode === 'director' ? `${scenes.length} scenes` : `${scriptText.length} chars`}
+                  </span>
                 </div>
               </div>
 
-              <textarea
-                value={scriptText}
-                onChange={(e) => setScriptText(e.target.value)}
-                placeholder="Paste Hindi or English script here... e.g. दोपहर का 1 बजा है। प्रिया की desk पर मम्मी का बनाया गरमागरम टिफिन रखा है।"
-                rows={5}
-                className="w-full p-4 rounded-xl bg-[#070b14] border border-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 text-slate-100 text-sm leading-relaxed resize-none outline-none placeholder:text-slate-600 transition-all font-sans"
-              />
+              {/* MODE 1: Raw Script Text Editor */}
+              {editorMode === 'text' && (
+                <div className="space-y-2">
+                  {/* Live Smart Breakdown Banner if bracket scenes are detected */}
+                  {detectedScenes.length > 1 && (
+                    <div className="p-3 rounded-xl bg-gradient-to-r from-sky-500/15 via-indigo-500/10 to-transparent border border-sky-500/30 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+                          ✨ {detectedScenes.length} Story Scenes Detected with Dynamic Delivery!
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleSwitchToDirector}
+                          className="px-2.5 py-1 rounded-lg bg-sky-500 hover:bg-sky-400 text-white text-[11px] font-semibold transition-all shadow-sm flex items-center gap-1"
+                        >
+                          <span>Open in Scene Director ➔</span>
+                        </button>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] no-scrollbar">
+                        {detectedScenes.map((sc, i) => (
+                          <div
+                            key={i}
+                            className="px-2 py-0.5 rounded-md bg-slate-900/80 border border-slate-700/80 text-slate-300 flex items-center gap-1 flex-shrink-0"
+                          >
+                            <span className="font-mono text-sky-400 font-bold">#{sc.index}</span>
+                            {sc.speakerRaw && <span className="text-white font-medium">{sc.speakerRaw} •</span>}
+                            <span className="capitalize text-emerald-400 font-medium">{sc.emotion}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <textarea
+                    value={scriptText}
+                    onChange={(e) => setScriptText(e.target.value)}
+                    onPaste={handlePasteScript}
+                    placeholder={`[Narrator – Calm, descriptive]\nदोपहर का 1 बजा है। प्रिया की desk पर मम्मी का बनाया गरमागरम टिफिन रखा है।\n\n[Curious, suspenseful]\nलेकिन तभी उसके फोन पर एक notification आया...`}
+                    rows={8}
+                    className="w-full p-4 rounded-xl bg-[#070b14] border border-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 text-slate-100 text-sm leading-relaxed resize-y outline-none placeholder:text-slate-600 transition-all font-sans"
+                  />
+
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 px-1">
+                    <span>
+                      💡 <strong>Pro-Tip:</strong> Write <code className="text-sky-300 bg-slate-800 px-1 py-0.5 rounded">[Emotion]</code> or <code className="text-sky-300 bg-slate-800 px-1 py-0.5 rounded">[Speaker – Emotion]</code> on the line before any dialogue to direct multi-character scenes automatically!
+                    </span>
+                    {detectedScenes.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={handleSwitchToDirector}
+                        className="text-sky-400 hover:text-sky-300 font-medium"
+                      >
+                        Visual Blocks
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* MODE 2: Visual Multi-Scene Director Cards */}
+              {editorMode === 'director' && (
+                <div className="space-y-3">
+                  <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
+                    {scenes.map((scene, idx) => (
+                      <div
+                        key={scene.id || idx}
+                        className="p-4 rounded-xl bg-[#080d1a] border border-slate-800/90 hover:border-slate-700 transition-all space-y-2.5 shadow-md"
+                      >
+                        {/* Scene Header Controls */}
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                            <span className="px-2 py-1 rounded-lg bg-sky-500/15 border border-sky-500/30 text-sky-300 font-mono font-bold text-xs">
+                              {scene.sceneTitle || `Scene ${String(idx + 1).padStart(2, '0')}`}
+                            </span>
+
+                            {/* Character Voice Picker for this scene */}
+                            <div className="flex items-center space-x-1.5 bg-slate-900 border border-slate-800 px-2 py-1 rounded-lg">
+                              <User className="w-3 h-3 text-sky-400" />
+                              <select
+                                value={scene.voice || selectedVoice}
+                                onChange={(e) => handleSceneVoiceChange(idx, e.target.value)}
+                                className="bg-transparent text-xs text-slate-200 outline-none cursor-pointer max-w-[150px] truncate"
+                              >
+                                {voices.map((v) => (
+                                  <option key={v} value={v} className="bg-slate-900 text-white">
+                                    {v}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            {/* Emotion Selector for this scene */}
+                            <div className="flex items-center space-x-1.5 bg-slate-900 border border-slate-800 px-2 py-1 rounded-lg">
+                              <Sparkles className="w-3 h-3 text-amber-400" />
+                              <select
+                                value={scene.emotion || 'storytelling'}
+                                onChange={(e) => handleSceneEmotionChange(idx, e.target.value)}
+                                className="bg-transparent text-xs text-sky-300 font-semibold outline-none cursor-pointer max-w-[170px] truncate capitalize"
+                              >
+                                {allEmotionsList.map((emo) => (
+                                  <option key={emo.key} value={emo.key} className="bg-slate-900 text-white">
+                                    {emo.title} — {emo.meaning || emo.category_name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          {/* Re-order & Delete Controls */}
+                          <div className="flex items-center space-x-1">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => handleMoveScene(idx, -1)}
+                              className="p-1 rounded-md text-slate-500 hover:text-slate-200 disabled:opacity-30 hover:bg-slate-800 transition-colors"
+                              title="Move Scene Up"
+                            >
+                              <ArrowUp className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === scenes.length - 1}
+                              onClick={() => handleMoveScene(idx, 1)}
+                              className="p-1 rounded-md text-slate-500 hover:text-slate-200 disabled:opacity-30 hover:bg-slate-800 transition-colors"
+                              title="Move Scene Down"
+                            >
+                              <ArrowDown className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={scenes.length <= 1}
+                              onClick={() => handleDeleteScene(idx)}
+                              className="p-1 rounded-md text-slate-500 hover:text-rose-400 disabled:opacity-30 hover:bg-rose-500/10 transition-colors"
+                              title="Delete Scene"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Dialogue / Script Input for this scene */}
+                        <textarea
+                          value={scene.text}
+                          onChange={(e) => handleSceneTextChange(idx, e.target.value)}
+                          placeholder="Paste or write dialogue for this scene..."
+                          rows={2}
+                          className="w-full p-3 rounded-lg bg-[#040711] border border-slate-800/80 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 text-slate-100 text-xs leading-relaxed outline-none resize-y placeholder:text-slate-600 transition-all font-sans"
+                        />
+
+                        {/* Scene Card Footer */}
+                        <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
+                          <span>
+                            {scene.text.length} chars • ~{Math.max(1, Math.ceil(scene.text.trim().split(/\s+/).length / 2.5))}s estimated
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={(e) => handlePreviewSingleScene(scene, e)}
+                            className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-medium flex items-center gap-1.5 transition-colors"
+                            title="Synthesize and audition only this line"
+                          >
+                            <Play className="w-3 h-3 text-sky-400 fill-current" />
+                            <span>Audition Line</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Director Mode Actions: Add Scene & Re-sync */}
+                  <div className="flex items-center justify-between pt-1">
+                    <button
+                      type="button"
+                      onClick={handleAddScene}
+                      className="px-3.5 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-sky-300 flex items-center gap-1.5 transition-all shadow-sm"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add New Scene Block</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleSwitchToText}
+                      className="text-xs text-slate-400 hover:text-white transition-colors"
+                    >
+                      Sync & View Raw Script
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Scene Title & Character Voice Selector */}
@@ -446,20 +816,25 @@ export default function StudioView({
             {/* Primary Generate Button */}
             <button
               type="submit"
-              disabled={isGenerating || !scriptText.trim()}
+              disabled={isGenerating || (editorMode === 'director' ? scenes.every(s => !s.text.trim()) : !scriptText.trim())}
               className="w-full py-3.5 rounded-xl bg-gradient-to-r from-sky-500 via-sky-600 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-semibold text-sm shadow-lg shadow-sky-500/25 transition-all flex items-center justify-center space-x-2 disabled:opacity-75 disabled:cursor-not-allowed"
             >
               {isGenerating && activeJob ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
                   <span>
-                    Rendering in Background ({activeJob.progress}% • ETA: ~{activeJob.eta_seconds}s)
+                    Rendering {activeJob.step || 'in Background'} ({activeJob.progress}% • ETA: ~{activeJob.eta_seconds}s)
                   </span>
                 </>
               ) : isGenerating ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                  <span>Submitting to Background Queue...</span>
+                  <span>Submitting Story to Background Queue...</span>
+                </>
+              ) : effectiveScenesCount > 1 ? (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  <span>Generate Full Story Audio ({effectiveScenesCount} Scenes with Dynamic Delivery)</span>
                 </>
               ) : (
                 <>

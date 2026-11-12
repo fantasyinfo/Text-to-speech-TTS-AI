@@ -37,7 +37,7 @@ export default function DashboardView({
             Multi-Character Storytelling & Voice Synthesis
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Real-time local Apple Silicon inference across Hindi Devanagari & English storytelling scripts.
+            Real-time local neural synthesis across Hindi Devanagari & English storytelling scripts.
           </p>
         </div>
 

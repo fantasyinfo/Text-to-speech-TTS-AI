@@ -7,6 +7,7 @@ import ProjectsView from './components/ProjectsView'
 import MediaLibraryView from './components/MediaLibraryView'
 import CharacterVaultView from './components/CharacterVaultView'
 import RecordEmotionModal from './components/RecordEmotionModal'
+import EditCharacterModal from './components/EditCharacterModal'
 import NewProjectModal from './components/NewProjectModal'
 import AudioPlayerBar from './components/AudioPlayerBar'
 import JobProgressWidget from './components/JobProgressWidget'
@@ -38,6 +39,9 @@ export default function App() {
   const [isRecordModalOpen, setIsRecordModalOpen] = useState(false)
   const [recordInitialChar, setRecordInitialChar] = useState('')
   const [recordInitialEmotion, setRecordInitialEmotion] = useState('neutral')
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editingCharacter, setEditingCharacter] = useState(null)
+  const [isPushingGit, setIsPushingGit] = useState(false)
 
   // Toast feedback
   const [toast, setToast] = useState(null)
@@ -350,6 +354,73 @@ export default function App() {
     setIsRecordModalOpen(true)
   }
 
+  const handleOpenEditCharacter = (charOrVoice) => {
+    if (typeof charOrVoice === 'object' && charOrVoice !== null) {
+      setEditingCharacter(charOrVoice)
+      setIsEditModalOpen(true)
+      return
+    }
+    if (typeof charOrVoice === 'string') {
+      let extracted = ''
+      const match = charOrVoice.match(/Custom:\s*([^(—[]+)/i)
+      if (match && match[1]) {
+        extracted = match[1].trim()
+      }
+      const found = characters.find(
+        (c) =>
+          c.name?.toLowerCase() === extracted.toLowerCase() ||
+          c.id?.toLowerCase() === extracted.toLowerCase()
+      )
+      if (found) {
+        setEditingCharacter(found)
+      } else {
+        setEditingCharacter({
+          name: extracted || 'Custom Character',
+          age: 30,
+          age_group: 'adult',
+          gender: 'male',
+        })
+      }
+      setIsEditModalOpen(true)
+    }
+  }
+
+  const handleDeleteCharacter = async (char) => {
+    try {
+      const res = await fetch(`/api/characters/${encodeURIComponent(char.name)}`, {
+        method: 'DELETE',
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.detail)
+      showToast(data.message, 'info')
+      fetchAllData()
+    } catch (err) {
+      showToast('Failed to delete character: ' + err.message, 'error')
+    }
+  }
+
+  const handleGitPush = async () => {
+    setIsPushingGit(true)
+    showToast('Syncing & pushing character voice models to GitHub...', 'info')
+    try {
+      const res = await fetch('/api/git/push', { method: 'POST' })
+      const data = await res.json()
+      if (data.success) {
+        showToast(
+          data.pushed ? data.message : `Saved locally (${data.commit}). Note: ${data.message}`,
+          data.pushed ? 'success' : 'info'
+        )
+        fetchAllData()
+      } else {
+        showToast(data.message || 'Git sync encountered an issue', 'error')
+      }
+    } catch (err) {
+      showToast('Failed to push to GitHub: ' + err.message, 'error')
+    } finally {
+      setIsPushingGit(false)
+    }
+  }
+
   const isJobRunning =
     activeJob && (activeJob.status === 'processing' || activeJob.status === 'queued')
 
@@ -417,6 +488,7 @@ export default function App() {
               currentPlayingUrl={currentPlayingUrl}
               isPlaying={isPlaying}
               onOpenVoiceCloner={() => handleOpenVoiceCloner()}
+              onEditVoice={handleOpenEditCharacter}
             />
           )}
 
@@ -465,6 +537,10 @@ export default function App() {
             <CharacterVaultView
               characters={characters}
               onOpenVoiceCloner={handleOpenVoiceCloner}
+              onEditCharacter={handleOpenEditCharacter}
+              onDeleteCharacter={handleDeleteCharacter}
+              onGitPush={handleGitPush}
+              isPushingGit={isPushingGit}
               onPlayAudio={handlePlayAudio}
               currentPlayingUrl={currentPlayingUrl}
               isPlaying={isPlaying}
@@ -504,6 +580,28 @@ export default function App() {
             fetchAllData()
             showToast('Character emotion sample saved successfully!')
           }}
+        />
+      )}
+
+      {/* Edit Character Profile Modal */}
+      {isEditModalOpen && (
+        <EditCharacterModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false)
+            setEditingCharacter(null)
+          }}
+          character={editingCharacter}
+          emotionsGuide={emotionsGuide}
+          onSaveSuccess={() => {
+            fetchAllData()
+            showToast('Character profile saved and updated!')
+          }}
+          onDeleteSuccess={() => {
+            fetchAllData()
+            showToast('Character removed successfully.')
+          }}
+          showToast={showToast}
         />
       )}
 

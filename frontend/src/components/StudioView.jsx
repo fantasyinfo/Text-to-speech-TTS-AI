@@ -12,7 +12,8 @@ import {
   FileAudio,
   Film,
   Zap,
-  RotateCcw
+  RotateCcw,
+  Pencil
 } from 'lucide-react'
 
 export default function StudioView({
@@ -26,14 +27,30 @@ export default function StudioView({
   currentPlayingUrl,
   isPlaying,
   onOpenVoiceCloner,
+  onEditVoice,
 }) {
   const [scriptText, setScriptText] = useState(
     'दोपहर का 1 बजा है। प्रिया की desk पर मम्मी का बनाया गरमागरम टिफिन रखा है।'
   )
   const [selectedVoice, setSelectedVoice] = useState(voices[0] || '')
+  const [selectedEmotion, setSelectedEmotion] = useState('neutral')
+  const [removeSilence, setRemoveSilence] = useState(false)
   const [language, setLanguage] = useState('hi')
   const [speed, setSpeed] = useState(1.0)
   const [clipTitle, setClipTitle] = useState('')
+
+  const EMOTIONS_LIST = [
+    { id: 'neutral', label: 'Neutral', emoji: '🎙️', desc: 'Storyteller' },
+    { id: 'happy', label: 'Happy', emoji: '😊', desc: 'Upbeat' },
+    { id: 'sad', label: 'Sad', emoji: '😢', desc: 'Melancholic' },
+    { id: 'angry', label: 'Angry', emoji: '😡', desc: 'Intense' },
+    { id: 'excited', label: 'Excited', emoji: '⚡', desc: 'Energetic' },
+    { id: 'calm', label: 'Calm', emoji: '🧘', desc: 'Gentle' },
+    { id: 'whisper', label: 'Whisper', emoji: '🤫', desc: 'Secretive' },
+    { id: 'crying', label: 'Crying', emoji: '😭', desc: 'Emotional' },
+    { id: 'scared', label: 'Scared', emoji: '😨', desc: 'Suspense' },
+    { id: 'tired', label: 'Tired', emoji: '🥱', desc: 'Exhausted' },
+  ]
 
   // Sync selected voice if voices array updates
   React.useEffect(() => {
@@ -52,6 +69,8 @@ export default function StudioView({
       speed,
       project_name: activeProject,
       clip_title: clipTitle,
+      emotion: selectedEmotion,
+      remove_silence: removeSilence,
     })
   }
 
@@ -67,13 +86,13 @@ export default function StudioView({
           </div>
           <div>
             <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-              Apple Silicon Voice Cloning Studio
+              Studio Voiceover & AI Speech
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                192kbps Broadcast MP3
+                192kbps Master MP3
               </span>
             </h3>
             <p className="text-xs text-slate-400">
-              Universal Devanagari Normalization active — conjuncts, English loanwords, and numbers expand automatically.
+              Devanagari Normalization active — conjuncts, English loanwords, and numbers expand automatically.
             </p>
           </div>
         </div>
@@ -143,17 +162,29 @@ export default function StudioView({
                 />
               </div>
 
-              {/* Voice & Emotion Dropdown */}
+              {/* Voice Dropdown */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-slate-300">Character Voice & Emotion</label>
-                  <button
-                    type="button"
-                    onClick={onOpenVoiceCloner}
-                    className="text-[11px] text-sky-400 hover:text-sky-300 font-medium flex items-center gap-1"
-                  >
-                    + Clone Voice
-                  </button>
+                  <label className="text-xs font-semibold text-slate-300">Character Voice</label>
+                  <div className="flex items-center space-x-2">
+                    {selectedVoice?.includes('🎭 Custom:') && onEditVoice && (
+                      <button
+                        type="button"
+                        onClick={() => onEditVoice(selectedVoice)}
+                        className="text-[11px] text-sky-400 hover:text-sky-300 font-medium flex items-center gap-1 transition-colors"
+                        title="Edit Character Voice Parameters"
+                      >
+                        <Pencil className="w-3 h-3" /> Edit Profile
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={onOpenVoiceCloner}
+                      className="text-[11px] text-slate-400 hover:text-slate-200 font-medium flex items-center gap-1 transition-colors"
+                    >
+                      + Clone
+                    </button>
+                  </div>
                 </div>
                 <select
                   value={selectedVoice}
@@ -166,6 +197,39 @@ export default function StudioView({
                     </option>
                   ))}
                 </select>
+              </div>
+            </div>
+
+            {/* Emotion Selector */}
+            <div className="space-y-2 p-4 rounded-xl bg-slate-900/60 border border-slate-800/80">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-sky-400" /> Vocal Emotion Delivery
+                </span>
+                <span className="text-[11px] text-sky-400 font-medium capitalize">
+                  {EMOTIONS_LIST.find((e) => e.id === selectedEmotion)?.desc || selectedEmotion}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1">
+                {EMOTIONS_LIST.map((emo) => {
+                  const isSel = selectedEmotion === emo.id
+                  return (
+                    <button
+                      key={emo.id}
+                      type="button"
+                      onClick={() => setSelectedEmotion(emo.id)}
+                      className={`flex items-center space-x-1.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-all border ${
+                        isSel
+                          ? 'bg-sky-500/20 text-sky-300 border-sky-500/40 shadow-sm'
+                          : 'bg-slate-900/70 text-slate-400 border-slate-800 hover:text-slate-200 hover:bg-slate-800/50'
+                      }`}
+                    >
+                      <span className="text-sm">{emo.emoji}</span>
+                      <span className="truncate">{emo.label}</span>
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
@@ -219,6 +283,30 @@ export default function StudioView({
               </div>
             </div>
 
+            {/* Remove Silence Checkbox */}
+            <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80">
+              <label htmlFor="removeSilence" className="flex items-center space-x-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  id="removeSilence"
+                  checked={removeSilence}
+                  onChange={(e) => setRemoveSilence(e.target.checked)}
+                  className="w-4 h-4 rounded text-sky-500 bg-slate-800 border-slate-700 focus:ring-sky-500 cursor-pointer accent-sky-500"
+                />
+                <div>
+                  <span className="text-xs font-semibold text-slate-200">Remove Silent Gaps</span>
+                  <p className="text-[11px] font-normal text-slate-400">
+                    Automatically trims pauses and dead silence between sentences for tight, fast pacing
+                  </p>
+                </div>
+              </label>
+              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                removeSilence ? 'bg-sky-500/20 text-sky-300 border-sky-500/30' : 'bg-slate-800 text-slate-500 border-slate-700'
+              }`}>
+                {removeSilence ? 'Silence Trimmed' : 'Natural Pauses'}
+              </span>
+            </div>
+
             {/* Primary Generate Button */}
             <button
               type="submit"
@@ -240,14 +328,14 @@ export default function StudioView({
               ) : (
                 <>
                   <Sparkles className="w-4 h-4" />
-                  <span>Generate MP3 Audio for Filmora</span>
+                  <span>Generate Voiceover (192kbps MP3)</span>
                 </>
               )}
             </button>
           </form>
         </div>
 
-        {/* RIGHT COLUMN: Real-Time Audio Player & Filmora Workflow Card */}
+        {/* RIGHT COLUMN: Real-Time Audio Player & Workflow Card */}
         <div className="lg:col-span-4 space-y-5">
           {/* Latest Generated Take Card */}
           <div className="p-5 rounded-2xl bg-[#0d1322] border border-slate-800 space-y-4 shadow-xl">
@@ -283,7 +371,7 @@ export default function StudioView({
                 <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-medium text-emerald-400 flex items-center gap-1">
-                      <CheckCircle className="w-3.5 h-3.5" /> Ready for Filmora
+                      <CheckCircle className="w-3.5 h-3.5" /> Master Audio Ready
                     </span>
                     <span className="text-[10px] font-mono text-slate-400">192kbps MP3</span>
                   </div>
@@ -330,7 +418,7 @@ export default function StudioView({
                   className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700/80 border border-slate-700 text-xs font-semibold text-slate-200 transition-all flex items-center justify-center space-x-2"
                 >
                   <Download className="w-4 h-4 text-sky-400" />
-                  <span>Download MP3 Directly</span>
+                  <span>Download Master MP3</span>
                 </a>
               </div>
             ) : (
@@ -342,23 +430,23 @@ export default function StudioView({
             )}
           </div>
 
-          {/* Filmora Storytelling Pro Tips */}
+          {/* Storytelling & Audio Tips */}
           <div className="p-5 rounded-2xl bg-[#0d1322] border border-slate-800 space-y-3">
             <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-              <Film className="w-4 h-4 text-indigo-400" /> Filmora Timeline Tips
+              <Sparkles className="w-4 h-4 text-indigo-400" /> Audio Storytelling Tips
             </h4>
             <div className="space-y-2 text-xs text-slate-400 leading-relaxed">
               <div className="flex items-start space-x-2">
                 <span className="text-sky-400 font-bold">•</span>
-                <span><strong>Multi-Emotion Beat Matching:</strong> Generate lines sentence-by-sentence with matching emotions (e.g. Calm ➔ Angry Confrontation ➔ Choked Breakdown).</span>
+                <span><strong>Multi-Emotion Delivery:</strong> Select matching emotions line-by-line (e.g. Calm narrative ➔ Angry confrontation ➔ Emotional conclusion).</span>
               </div>
               <div className="flex items-start space-x-2">
                 <span className="text-sky-400 font-bold">•</span>
-                <span><strong>Direct Timeline Drag:</strong> MP3s are saved with broadcast -16 LUFS loudness. Drag directly from <code className="text-sky-300">outputs/{activeProject}/</code> into Filmora!</span>
+                <span><strong>Age & Gender Adaptation:</strong> Custom character age (child, young, adult, elder) and gender tone adjustments are automatically applied.</span>
               </div>
               <div className="flex items-start space-x-2">
                 <span className="text-sky-400 font-bold">•</span>
-                <span><strong>Natural Pacing:</strong> 280ms diaphragm breath cadence is pre-calculated between sentences.</span>
+                <span><strong>Silence Control:</strong> Toggle "Remove Silent Gaps" for snappy, fast-paced dialogue or keep natural pauses for cinematic storytelling.</span>
               </div>
             </div>
           </div>

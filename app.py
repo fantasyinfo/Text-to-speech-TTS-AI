@@ -1,6 +1,6 @@
 """
 AudioAI: Pro Multi-Character Voice Studio & Project Admin Panel
-Optimized for Apple Silicon (M-Series) with Universal Devanagari Linguistic Normalization,
+Featuring Universal Devanagari Linguistic Normalization,
 10-Emotion Character Vault, Project Workspaces, and Full Media Library Management.
 """
 
@@ -73,7 +73,7 @@ with gr.Blocks(title="AudioAI Studio — Multi-Character Voice Studio") as demo:
             gr.Markdown(
                 """
                 # 🎙️ AudioAI Studio & Project Admin
-                **Professional Multi-Character Voice Cloning & Filmora Audio Workspace**
+                **Professional Multi-Character Voice Cloning & Story Audio Workspace**
                 """
             )
         with gr.Column(scale=4):
@@ -223,23 +223,23 @@ with gr.Blocks(title="AudioAI Studio — Multi-Character Voice Studio") as demo:
                             scale=2,
                         )
 
-                    generate_btn = gr.Button("🚀 Generate MP3 Audio for Filmora", variant="primary", size="lg")
+                    generate_btn = gr.Button("🚀 Generate MP3 Audio Track", variant="primary", size="lg")
 
                 # RIGHT COLUMN: Audio Playback, File Download & Generation Logs
                 with gr.Column(scale=2):
-                    gr.Markdown("### 🎧 Voiceover Preview & Filmora Export")
+                    gr.Markdown("### 🎧 Voiceover Preview & Audio Export")
                     audio_player = gr.Audio(label="Preview Audio", type="filepath")
-                    download_file = gr.File(label="Download 192kbps MP3 for Filmora")
+                    download_file = gr.File(label="Download 192kbps MP3 Audio")
                     status_box = gr.Textbox(label="Status / Generation Log", interactive=False, lines=2)
 
                     gr.Markdown(
                         """
                         ---
-                        ### 🎬 Filmora Timeline Storytelling Tips:
+                        ### 🎬 Timeline Storytelling Tips:
                         1. **Pick Character & Emotion**: Select your character with matching emotion (e.g. *Sad, Angry, Crying*).
                         2. **Dialogue Transitions**: Generate dialogues beat-by-beat to create authentic emotional transitions.
                         3. **Automatic Project Folder**: Every take is safely archived into your active project folder (`outputs/<project_name>/`).
-                        4. **Direct Drag**: Drag MP3s directly from the download box or project folder straight into Filmora!
+                        4. **Direct Drag**: Drag MP3s directly from the download box or project folder straight into your video editor!
                         """
                     )
 
@@ -251,7 +251,7 @@ with gr.Blocks(title="AudioAI Studio — Multi-Character Voice Studio") as demo:
                 """
                 ### 🗂️ Project Media Library (Admin Panel)
                 Manage all audio files generated inside your current project workspace. Preview any audio take,
-                rename files for easy organization in Filmora, delete unwanted takes, or download tracks.
+                rename files for easy organization, delete unwanted takes, or download tracks.
                 """
             )
 

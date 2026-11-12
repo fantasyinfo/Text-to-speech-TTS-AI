@@ -1,6 +1,6 @@
 """
 VoxStudio AI: Single Command Launcher
-Starts the FastAPI backend serving the React Vite SaaS UI on Apple Silicon.
+Starts the FastAPI backend serving the React Vite SaaS UI.
 """
 
 import os
@@ -20,10 +20,10 @@ def main():
     port = int(os.environ.get("PORT", 8000))
     print("=" * 60)
     print("🎙️  VoxStudio AI — Multi-Character SaaS Voice Studio")
-    print("    Powered by Apple Silicon XTTS-v2 & React Vite")
+    print("    Neural TTS Engine & React Vite")
     print("=" * 60)
     
-    print("\n[1/2] Initializing XTTS-v2 voice engine on Apple Silicon...")
+    print("\n[1/2] Initializing XTTS-v2 voice engine...")
     get_tts_model()
     print("XTTS-v2 engine ready.")
 

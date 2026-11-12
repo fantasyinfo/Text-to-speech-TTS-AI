@@ -14,7 +14,7 @@ import {
 
 export default function Sidebar({ currentTab, setCurrentTab, activeProject, stats }) {
   const workspaceItems = [
-    { id: 'studio', label: 'Voiceover Studio', icon: Mic2, badge: 'ElevenLabs' },
+    { id: 'studio', label: 'Voiceover Studio', icon: Mic2, badge: 'Studio' },
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'projects', label: 'Projects', icon: FolderKanban, count: stats?.total_projects },
     { id: 'media', label: 'Media Library', icon: Library, count: stats?.total_audio_tracks },
@@ -37,7 +37,7 @@ export default function Sidebar({ currentTab, setCurrentTab, activeProject, stat
             <h1 className="font-bold text-white text-base tracking-tight flex items-center gap-1.5">
               VoxStudio <span className="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400 font-semibold border border-sky-500/30">AI</span>
             </h1>
-            <p className="text-[11px] text-slate-400 leading-none">Filmora Voice Engine</p>
+            <p className="text-[11px] text-slate-400 leading-none">AI Voice Studio</p>
           </div>
         </div>
       </div>
@@ -123,12 +123,12 @@ export default function Sidebar({ currentTab, setCurrentTab, activeProject, stat
         </div>
       </div>
 
-      {/* Active Workspace / Apple Silicon Status Card */}
+      {/* Active Workspace / Neural Audio Engine Status Card */}
       <div className="p-3 border-t border-slate-800/70 bg-[#0a0f1d]">
         <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-slate-400 flex items-center gap-1.5">
-              <Cpu className="w-3.5 h-3.5 text-emerald-400" /> Apple Silicon CPU
+              <Cpu className="w-3.5 h-3.5 text-emerald-400" /> Neural Audio Engine
             </span>
             <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               Offline Ready

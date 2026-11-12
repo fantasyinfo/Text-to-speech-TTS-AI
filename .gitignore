@@ -16,10 +16,9 @@ venv.bak/
 outputs/*
 !outputs/.gitkeep
 
-# Custom voice recordings (keep directory structure, ignore personal voice files)
-voices/*
-!voices/.gitkeep
-!voices/README.md
+# Custom character voice profiles & audio samples (tracked for backup & portability)
+voices/temp_*
+voices/*.tmp
 
 # Temporary audio and processing files
 temp_*

@@ -19,27 +19,127 @@ _tts_instance = None
 
 
 def get_tts_model():
-    """Initializes and returns the singleton XTTS-v2 TTS model on Apple Silicon CPU."""
+    """Initializes and returns the singleton XTTS-v2 TTS model."""
     global _tts_instance
     if _tts_instance is None:
-        print("Initializing XTTS-v2 engine on Apple Silicon...")
+        print("Initializing Neural Audio Engine...")
         _tts_instance = TTS("tts_models/multilingual/multi-dataset/xtts_v2", gpu=False)
-        print("XTTS-v2 model loaded successfully!")
+        print("Neural Audio Engine loaded successfully!")
     return _tts_instance
 
 
-def prepare_reference_audio(audio_path: str, temp_dir: Path) -> str:
-    """Converts reference audio to clean 24kHz mono WAV with silence trimmed and loudnorm for optimal XTTS conditioning."""
+def build_tone_and_silence_filter(
+    age_group: str = "adult",
+    gender: str = "male",
+    emotion: str = "neutral",
+    remove_silence: bool = False,
+    is_reference: bool = False,
+) -> str:
+    """
+    Builds an FFmpeg audio filter chain that:
+    1. Adjusts voice pitch, vocal tract formants, and resonance based on character Age and Gender
+       (e.g., childlike pitch and lightness for kids, deep/resonant warmth and tremor for elders, female pitch shift).
+    2. Modulates prosody and frequency curve based on selected Emotion (happy, sad, angry, etc.).
+    3. Trims dead silence gaps if remove_silence=True.
+    """
+    filters = []
+    p_factor = 1.0
+
+    ag = (age_group or "adult").lower()
+    g = (gender or "male").lower()
+
+    # Age and Gender vocal tract reshaping
+    if ag == "child":
+        p_factor *= 1.26
+        filters.append("highpass=f=130")
+        filters.append("equalizer=f=3200:t=q:w=1.2:g=2.5")
+        filters.append("equalizer=f=200:t=q:w=1.0:g=-3.0")
+    elif ag == "elder":
+        if g == "female":
+            p_factor *= 1.08
+            filters.append("lowpass=f=7200")
+            filters.append("equalizer=f=250:t=q:w=1.2:g=2.5")
+            if not is_reference:
+                filters.append("vibrato=f=4.5:d=0.07")
+        else:
+            p_factor *= 0.88
+            filters.append("lowpass=f=6800")
+            filters.append("equalizer=f=200:t=q:w=1.2:g=3.0")
+            if not is_reference:
+                filters.append("vibrato=f=4.5:d=0.08")
+    elif ag == "young":
+        if g == "female":
+            p_factor *= 1.22
+            filters.append("highpass=f=120")
+            filters.append("equalizer=f=2800:t=q:w=1.2:g=2.0")
+        else:
+            p_factor *= 1.05
+            filters.append("equalizer=f=3000:t=q:w=1.2:g=1.5")
+    elif ag == "adult":
+        if g == "female":
+            p_factor *= 1.18
+            filters.append("highpass=f=100")
+            filters.append("equalizer=f=2600:t=q:w=1.2:g=2.0")
+
+    # Emotion prosody modulation (applied to speech output)
+    if not is_reference and emotion:
+        emo = emotion.lower().strip()
+        if emo == "happy":
+            p_factor *= 1.05
+            filters.append("equalizer=f=3500:t=q:w=1.2:g=2.0")
+        elif emo == "sad":
+            p_factor *= 0.94
+            filters.append("lowpass=f=6500")
+            filters.append("equalizer=f=400:t=q:w=1.2:g=1.5")
+        elif emo == "angry":
+            p_factor *= 1.04
+            filters.append("acompressor=threshold=-16dB:ratio=4:attack=5:release=50")
+            filters.append("equalizer=f=2500:t=q:w=1.2:g=2.5")
+        elif emo == "excited":
+            p_factor *= 1.08
+            filters.append("equalizer=f=4000:t=q:w=1.2:g=2.5")
+        elif emo == "whisper":
+            filters.append("highpass=f=320")
+            filters.append("equalizer=f=5500:t=q:w=1.0:g=5.0")
+        elif emo == "crying":
+            p_factor *= 0.95
+            filters.append("vibrato=f=5.2:d=0.15")
+            filters.append("equalizer=f=300:t=q:w=1.2:g=2.0")
+        elif emo == "tired":
+            p_factor *= 0.95
+        elif emo == "scared":
+            p_factor *= 1.06
+
+    if abs(p_factor - 1.0) > 0.01:
+        p_rate = round(24000 * p_factor)
+        p_tempo = round(1.0 / p_factor, 5)
+        filters.insert(0, f"asetrate={p_rate},atempo={p_tempo},aresample=24000")
+
+    if remove_silence:
+        filters.append("silenceremove=start_periods=1:start_duration=0.04:start_threshold=-38dB")
+        filters.append("silenceremove=stop_periods=-1:stop_duration=0.12:stop_threshold=-38dB")
+
+    return ",".join(filters)
+
+
+def prepare_reference_audio(audio_path: str, temp_dir: Path, tone_filter: str = "") -> str:
+    """Converts reference audio to clean 24kHz mono WAV with silence trimmed, optional tone conditioning, and loudnorm for optimal XTTS conditioning."""
     src_path = Path(audio_path)
     if not src_path.exists():
         raise FileNotFoundError(f"Reference voice audio file not found: {audio_path}")
 
     clean_wav = temp_dir / f"clean_ref_{int(time.time() * 1000)}.wav"
+    af_chain = ["silenceremove=start_periods=1:start_duration=0.05:start_threshold=-40dB,areverse,silenceremove=start_periods=1:start_duration=0.05:start_threshold=-40dB,areverse"]
+    if tone_filter:
+        af_chain.append(tone_filter)
+    af_chain.append("loudnorm=I=-16:TP=-1.5:LRA=11")
+    full_af = ",".join(af_chain)
+
     cmd = [
         FFMPEG_BIN,
         "-y",
         "-i", str(src_path),
-        "-af", "silenceremove=start_periods=1:start_duration=0.05:start_threshold=-40dB,areverse,silenceremove=start_periods=1:start_duration=0.05:start_threshold=-40dB,areverse,loudnorm=I=-16:TP=-1.5:LRA=11",
+        "-af", full_af,
         "-ac", "1",
         "-ar", "24000",
         "-vn",
@@ -51,13 +151,21 @@ def prepare_reference_audio(audio_path: str, temp_dir: Path) -> str:
     return str(src_path)
 
 
-def convert_wav_to_mp3(wav_path: Path, mp3_path: Path):
-    """Uses FFmpeg with libmp3lame to convert WAV to clean 192kbps 44.1kHz MP3 for Filmora, trimming dead tail air."""
+def convert_wav_to_mp3(wav_path: Path, mp3_path: Path, tone_filter: str = "", remove_silence: bool = False):
+    """Uses FFmpeg with libmp3lame to convert WAV to clean 192kbps 44.1kHz broadcast MP3, applying tone shaping and optional silence removal."""
+    af_chain = ["areverse,silenceremove=start_periods=1:start_duration=0.08:start_threshold=-45dB,areverse"]
+    if tone_filter:
+        af_chain.append(tone_filter)
+    if remove_silence:
+        af_chain.append("silenceremove=start_periods=1:start_duration=0.04:start_threshold=-38dB")
+        af_chain.append("silenceremove=stop_periods=-1:stop_duration=0.12:stop_threshold=-38dB")
+    full_af = ",".join(af_chain)
+
     cmd = [
         FFMPEG_BIN,
         "-y",
         "-i", str(wav_path),
-        "-af", "areverse,silenceremove=start_periods=1:start_duration=0.08:start_threshold=-45dB,areverse",
+        "-af", full_af,
         "-codec:a", "libmp3lame",
         "-b:a", "192k",
         "-ar", "44100",
@@ -136,15 +244,18 @@ def get_safe_max_new_tokens(text: str, speed: float) -> int | None:
 def generate_voiceover_track(
     script_text: str,
     voice_choice: str,
-    custom_upload: str,
-    language_label: str,
-    speed: float,
+    custom_upload: str = None,
+    language_label: str = "Hindi (hi)",
+    speed: float = 1.0,
     project_name: str = DEFAULT_PROJECT_NAME,
     clip_title: str = "",
+    emotion: str = "neutral",
+    remove_silence: bool = False,
     progress_callback=None,
 ) -> tuple[str, str, str]:
     """
-    Synthesizes script into high-grade MP3 voiceover stored inside outputs/<project_name>/.
+    Synthesizes script into broadcast-quality 192kbps MP3 stored inside outputs/<project_name>/.
+    Automatically adjusts voice tone based on character age and gender, and applies selected emotion.
     Supports optional progress_callback(percent: int, step: str, current_sentence: int, total_sentences: int, eta_seconds: float)
     Returns (mp3_path_for_player, mp3_path_for_download, status_log).
     """
@@ -154,7 +265,7 @@ def generate_voiceover_track(
         raise gr.Error("Please select a character voice.")
 
     if progress_callback:
-        progress_callback(3, "Initializing Apple Silicon XTTS-v2 engine...", 0, 0, 15.0)
+        progress_callback(3, "Initializing Neural Audio Engine...", 0, 0, 15.0)
 
     tts = get_tts_model()
     project_dir = get_project_dir(project_name)
@@ -183,33 +294,82 @@ def generate_voiceover_track(
         speaker_wav = None
         speaker_name = None
 
+        char_name = ""
+        meta = {"age": 30, "age_group": "adult", "gender": "male"}
+
+        # Extract character name and metadata
+        if "Custom:" in voice_choice or "[" in voice_choice:
+            m = re.search(r"Custom:\s*([^(—\[]+)", voice_choice)
+            if m:
+                char_name = m.group(1).strip()
+            elif "[" in voice_choice:
+                file_stem = Path(re.search(r"\[(.*?)\]", voice_choice).group(1)).stem
+                char_name = file_stem.split("_")[0].replace("-", " ").title()
+
+            from voice_manager import get_character_metadata
+            if char_name:
+                meta = get_character_metadata(char_name)
+
+        age_group = meta.get("age_group", "adult")
+        gender = meta.get("gender", "male")
+
+        # Build tone filter for reference conditioning
+        ref_tone_filter = build_tone_and_silence_filter(
+            age_group=age_group,
+            gender=gender,
+            emotion="",
+            remove_silence=False,
+            is_reference=True,
+        )
+
+        # Build tone filter for output master
+        out_tone_filter = build_tone_and_silence_filter(
+            age_group=age_group,
+            gender=gender,
+            emotion=emotion,
+            remove_silence=remove_silence,
+            is_reference=False,
+        )
+
         if "[" in voice_choice and voice_choice.endswith("]"):
-            # Custom saved character voice with emotion: extract bracketed filename
             match = re.search(r"\[(.*?)\]", voice_choice)
             if match:
-                ref_file = VOICES_DIR / match.group(1).strip()
-                if ref_file.exists():
+                chosen_filename = match.group(1).strip()
+                ref_file = None
+                # If specific emotion requested and not neutral, check for emotion take
+                if emotion and emotion.lower() != "neutral" and char_name:
+                    char_clean = re.sub(r"[^a-zA-Z0-9_-]", "_", char_name.lower())
+                    emo_file = VOICES_DIR / f"{char_clean}_{emotion.lower()}.wav"
+                    if emo_file.exists():
+                        ref_file = emo_file
+                if not ref_file:
+                    fallback_file = VOICES_DIR / chosen_filename
+                    if fallback_file.exists():
+                        ref_file = fallback_file
+
+                if ref_file and ref_file.exists():
                     if progress_callback:
-                        progress_callback(10, f"Conditioning vocal timbre from {ref_file.name}...", 0, 0, 12.0)
-                    speaker_wav = prepare_reference_audio(str(ref_file), temp_dir_path)
+                        desc = f"Conditioning {age_group.title()} {gender.title()} vocal timbre from {ref_file.name}..."
+                        progress_callback(10, desc, 0, 0, 12.0)
+                    speaker_wav = prepare_reference_audio(str(ref_file), temp_dir_path, tone_filter=ref_tone_filter)
         elif voice_choice.startswith("Custom Clone: "):
             filename = voice_choice.replace("Custom Clone: ", "").strip()
             ref_file = VOICES_DIR / filename
             if ref_file.exists():
                 if progress_callback:
                     progress_callback(10, f"Conditioning vocal timbre from {filename}...", 0, 0, 12.0)
-                speaker_wav = prepare_reference_audio(str(ref_file), temp_dir_path)
+                speaker_wav = prepare_reference_audio(str(ref_file), temp_dir_path, tone_filter=ref_tone_filter)
         elif "Preset:" in voice_choice:
             clean_preset = voice_choice.replace("🎙️ Preset: ", "").strip()
             speaker_name = PRESET_VOICES.get(clean_preset, "Damien Black")
         elif custom_upload is not None:
             if progress_callback:
                 progress_callback(10, "Normalizing custom uploaded voice sample...", 0, 0, 12.0)
-            speaker_wav = prepare_reference_audio(custom_upload, temp_dir_path)
+            speaker_wav = prepare_reference_audio(custom_upload, temp_dir_path, tone_filter=ref_tone_filter)
         else:
             speaker_name = "Damien Black"
 
-        print(f"Generating audio in [{project_name}] for lang: {lang_code}, voice: {voice_choice}, speed: {speed}...")
+        print(f"Generating audio in [{project_name}] for lang: {lang_code}, voice: {voice_choice}, emotion: {emotion}, speed: {speed}...")
         start_time = time.time()
 
         # Split into sentences for clean breathing and alignment
@@ -224,13 +384,15 @@ def generate_voiceover_track(
             sentences = raw_sentences
 
         total_sentences = len(sentences)
-        # Average XTTS sentence duration on Apple Silicon M-series is ~5.5-7.0s
         est_per_sen = 6.0
         current_eta = round(total_sentences * est_per_sen + 2.0, 1)
 
         sr = 24000
-        # 280ms breath pause between sentences for realistic storytelling cadence
-        pause_samples = int(sr * 0.28)
+        # Breathing pause between sentences
+        if remove_silence:
+            pause_samples = int(sr * 0.05)  # 50ms tight spacing
+        else:
+            pause_samples = int(sr * 0.28)  # 280ms natural diaphragm breathing
         pause_array = np.zeros(pause_samples, dtype=np.float32)
 
         combined_audio = []
@@ -238,7 +400,7 @@ def generate_voiceover_track(
 
         for idx, sen in enumerate(sentences):
             sen_start_pct = int(12 + (idx / total_sentences) * 78)
-            step_desc = f"Synthesizing sentence {idx + 1} of {total_sentences} (Apple Silicon CPU)..."
+            step_desc = f"Synthesizing sentence {idx + 1} of {total_sentences}..."
             if progress_callback:
                 progress_callback(sen_start_pct, step_desc, idx + 1, total_sentences, current_eta)
 
@@ -292,24 +454,24 @@ def generate_voiceover_track(
                 )
 
         if progress_callback:
-            progress_callback(92, "Concatenating audio & applying 280ms breathing pauses...", total_sentences, total_sentences, 1.5)
+            progress_callback(92, "Assembling master waveform...", total_sentences, total_sentences, 1.5)
 
         full_waveform = np.concatenate(combined_audio)
         sf.write(str(temp_wav), full_waveform, sr)
 
         duration = time.time() - start_time
-        print(f"Synthesis completed in {duration:.1f}s. Converting to Filmora MP3 in {project_dir.name}...")
+        print(f"Synthesis completed in {duration:.1f}s. Mastering 192kbps MP3 in {project_dir.name}...")
 
-    # Convert to Filmora-ready 192kbps MP3
+    # Convert to broadcast-ready 192kbps MP3 with tone shaping and silence trimming
     if progress_callback:
-        progress_callback(96, "Encoding broadcast-grade 192kbps MP3 (libmp3lame)...", total_sentences, total_sentences, 0.8)
+        progress_callback(96, "Mastering 192kbps MP3 (tone shaping & dynamics)...", total_sentences, total_sentences, 0.8)
 
-    convert_wav_to_mp3(temp_wav, final_mp3)
+    convert_wav_to_mp3(temp_wav, final_mp3, tone_filter=out_tone_filter, remove_silence=remove_silence)
     if temp_wav.exists():
         temp_wav.unlink()
 
     if progress_callback:
-        progress_callback(100, f"Generated in {duration:.1f}s — Ready for Filmora!", total_sentences, total_sentences, 0.0)
+        progress_callback(100, f"Generated in {duration:.1f}s — Master Audio Ready!", total_sentences, total_sentences, 0.0)
 
     status_msg = f"✅ Generated in {duration:.1f}s | Saved to '{project_name}/{final_mp3.name}'"
     return str(final_mp3), str(final_mp3), status_msg

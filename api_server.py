@@ -1,13 +1,14 @@
 """
-FastAPI Backend for VoxStudio AI (ElevenLabs / Modern SaaS Style)
-Serves REST APIs for Project Workspaces, 10-Emotion Character Voice Vault,
-Devanagari Normalization, and Apple Silicon XTTS-v2 Audio Synthesis.
+FastAPI Backend for VoxStudio AI
+Serves REST APIs for Project Workspaces, Multi-Emotion Character Voice Vault,
+Devanagari Normalization, and Neural Audio Synthesis.
 """
 
 import os
 import re
 import time
 import shutil
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
@@ -39,6 +40,13 @@ from voice_manager import (
     format_voice_file_label,
     get_available_voices,
     get_character_status_markdown,
+    get_character_metadata,
+    save_character_metadata,
+    load_characters_store,
+    update_character_profile,
+    delete_character_profile,
+    git_sync_characters,
+    get_git_sync_status,
 )
 from audio_engine import generate_voiceover_track, get_tts_model
 from text_processor import preprocess_script_text
@@ -82,6 +90,13 @@ class GenerateAudioRequest(BaseModel):
     speed: float = 1.0
     project_name: str = DEFAULT_PROJECT_NAME
     clip_title: Optional[str] = ""
+    emotion: Optional[str] = "neutral"
+    remove_silence: Optional[bool] = False
+
+
+class UpdateCharacterMetadataRequest(BaseModel):
+    age: Optional[str] = "adult"
+    gender: Optional[str] = "male"
 
 
 # ---------------------------------------------------------
@@ -92,7 +107,7 @@ def get_health():
     return {
         "status": "healthy",
         "engine": "Coqui XTTS-v2",
-        "device": "Apple Silicon (CPU Inference)",
+        "device": "Neural Engine (CPU Inference)",
         "output_dir": str(OUTPUTS_DIR),
         "voices_dir": str(VOICES_DIR),
     }
@@ -209,6 +224,7 @@ def get_emotions_guide():
 @app.get("/api/characters")
 def list_characters_with_emotions():
     """Returns character roster with emotion breakdown for SaaS cards."""
+    store = load_characters_store()
     characters = get_existing_characters()
     roster = []
 
@@ -216,6 +232,7 @@ def list_characters_with_emotions():
         clean_char = re.sub(r"[^a-zA-Z0-9_-]", "_", char_name.strip().lower())
         char_emotions = {}
 
+        # Scan for existing recorded files
         for f in VOICES_DIR.iterdir():
             if f.is_file() and f.suffix.lower() in {".wav", ".mp3", ".m4a"}:
                 stem = f.stem.lower()
@@ -226,11 +243,20 @@ def list_characters_with_emotions():
                     char_emotions["neutral"] = f"/api/voices/raw/{f.name}"
 
         recorded_count = sum(1 for emo in EMOTIONS if emo in char_emotions)
+        meta = get_character_metadata(char_name)
+        char_entry = store.get("characters", {}).get(clean_char, {})
         roster.append({
+            "id": clean_char,
             "name": char_name,
+            "age": meta.get("age", 30),
+            "age_group": meta.get("age_group", "adult"),
+            "gender": meta.get("gender", "male"),
+            "description": meta.get("description", ""),
             "recorded_count": recorded_count,
             "total_emotions": len(EMOTIONS),
             "completeness_percent": int((recorded_count / len(EMOTIONS)) * 100),
+            "created_at": char_entry.get("created_at"),
+            "updated_at": char_entry.get("updated_at"),
             "emotions": {
                 emo_key: {
                     "recorded": emo_key in char_emotions,
@@ -242,6 +268,99 @@ def list_characters_with_emotions():
         })
 
     return {"characters": roster}
+
+
+@app.get("/api/characters/{char_name}")
+def get_single_character(char_name: str):
+    """Returns full profile data for a single character."""
+    meta = get_character_metadata(char_name)
+    store = load_characters_store()
+    clean_char = re.sub(r"[^a-zA-Z0-9_-]", "_", char_name.strip().lower())
+    char_entry = store.get("characters", {}).get(clean_char, {})
+    return {
+        "id": clean_char,
+        "name": char_entry.get("name", char_name),
+        "age": meta.get("age", 30),
+        "age_group": meta.get("age_group", "adult"),
+        "gender": meta.get("gender", "male"),
+        "description": meta.get("description", ""),
+        "takes": char_entry.get("takes", {}),
+    }
+
+
+@app.post("/api/characters/update")
+async def update_character_api(
+    char_name: str = Form(...),
+    new_name: Optional[str] = Form(None),
+    age: Optional[str] = Form(None),
+    gender: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+    emotion: Optional[str] = Form("neutral"),
+    push_to_git: Optional[bool] = Form(False),
+    audio_file: Optional[UploadFile] = File(None),
+):
+    """Updates an existing character profile (rename, age, gender, description, replace voice audio)."""
+    temp_upload = None
+    try:
+        if audio_file and audio_file.filename:
+            temp_upload = VOICES_DIR / f"temp_upload_{int(time.time() * 1000)}.bin"
+            with open(temp_upload, "wb") as f:
+                f.write(await audio_file.read())
+
+        updated = update_character_profile(
+            char_name=char_name,
+            new_name=new_name,
+            age=age,
+            gender=gender,
+            description=description,
+            new_audio_path=str(temp_upload) if temp_upload else None,
+            emotion_key=emotion or "neutral",
+        )
+
+        git_res = None
+        if push_to_git:
+            commit_msg = f"feat(characters): update character profile '{new_name or char_name}'"
+            git_res = git_sync_characters(commit_msg)
+
+        return {
+            "success": True,
+            "character": updated,
+            "git_sync": git_res,
+            "message": f"Character '{updated['name']}' updated successfully!",
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    finally:
+        if temp_upload and temp_upload.exists():
+            try:
+                temp_upload.unlink()
+            except Exception:
+                pass
+
+
+@app.delete("/api/characters/{char_name}")
+def delete_character_api(char_name: str):
+    """Deletes a custom character profile and all associated audio takes."""
+    success = delete_character_profile(char_name)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Character '{char_name}' not found.")
+    return {
+        "success": True,
+        "message": f"Character '{char_name}' and all associated audio samples deleted.",
+    }
+
+
+@app.get("/api/git/status")
+def api_git_status():
+    """Returns local git sync status for character profiles and models."""
+    return get_git_sync_status()
+
+
+@app.post("/api/git/push")
+def api_git_push():
+    """Commits and pushes character profiles, settings, and voice samples to GitHub."""
+    res = git_sync_characters()
+    return res
 
 
 @app.get("/api/voices/raw/{filename}")
@@ -261,14 +380,19 @@ def list_all_voices():
 @app.post("/api/characters/record-emotion")
 async def save_character_emotion_api(
     character_name: str = Form(...),
-    emotion_key: str = Form(...),
+    emotion_key: str = Form("neutral"),
+    age: Optional[str] = Form("adult"),
+    gender: Optional[str] = Form("male"),
     audio_file: UploadFile = File(...),
 ):
-    """Saves and normalizes an emotion audio sample for a character."""
+    """Saves and normalizes an emotion audio sample for a character with age and gender metadata."""
     if not character_name or not character_name.strip():
         raise HTTPException(status_code=400, detail="Character name is required")
     if emotion_key not in EMOTIONS:
         raise HTTPException(status_code=400, detail=f"Invalid emotion key: {emotion_key}")
+
+    # Persist character age, age_group, and gender
+    save_character_metadata(character_name, age=age or "adult", gender=gender or "male")
 
     safe_char = re.sub(r"[^a-zA-Z0-9_-]", "_", character_name.strip().lower())
     safe_emo = emotion_key.strip().lower()
@@ -302,13 +426,49 @@ async def save_character_emotion_api(
         raise HTTPException(status_code=500, detail=f"FFmpeg processing failed: {result.stderr}")
 
     display_char = character_name.strip().replace("_", " ").title()
+    meta = get_character_metadata(character_name)
+
+    # Record take into characters store
+    store = load_characters_store()
+    if safe_char not in store.get("characters", {}):
+        store["characters"][safe_char] = {
+            "id": safe_char,
+            "name": display_char,
+            "age": meta.get("age", 30),
+            "age_group": meta.get("age_group", "adult"),
+            "gender": meta.get("gender", "male"),
+            "description": meta.get("description", ""),
+            "takes": {},
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat(),
+        }
+    if "takes" not in store["characters"][safe_char]:
+        store["characters"][safe_char]["takes"] = {}
+    store["characters"][safe_char]["takes"][safe_emo] = {
+        "emotion": safe_emo,
+        "filename": dest_filename,
+        "filepath": f"voices/{dest_filename}",
+        "label": EMOTIONS.get(safe_emo, {}).get("title", safe_emo.title()),
+    }
+    store["characters"][safe_char]["updated_at"] = datetime.now().isoformat()
+    from voice_manager import save_characters_store
+    save_characters_store(store)
+
     return {
         "success": True,
         "filename": dest_filename,
         "character": display_char,
         "emotion": safe_emo,
-        "message": f"Saved {EMOTIONS[safe_emo]['title']} for {display_char}!",
+        "profile": meta,
+        "message": f"Saved {EMOTIONS[safe_emo]['title']} for {display_char} ({meta['age_group'].title()} • {meta['gender'].title()})!",
     }
+
+
+@app.put("/api/characters/{char_name}/metadata")
+def update_character_metadata_api(char_name: str, req: UpdateCharacterMetadataRequest):
+    """Updates age and gender metadata for an existing character."""
+    updated = save_character_metadata(char_name, age=req.age or "adult", gender=req.gender or "male")
+    return {"success": True, "character": updated}
 
 
 # ---------------------------------------------------------
@@ -328,6 +488,8 @@ def api_create_job(req: GenerateAudioRequest):
         speed=req.speed,
         project_name=req.project_name,
         clip_title=req.clip_title or "",
+        emotion=req.emotion or "neutral",
+        remove_silence=bool(req.remove_silence),
     )
     job = get_job_status(job_id)
     return {"success": True, "job_id": job_id, "job": job}

@@ -24,6 +24,9 @@ export default function RecordEmotionModal({
 }) {
   const [characterName, setCharacterName] = useState(initialCharacter)
   const [isNewChar, setIsNewChar] = useState(!initialCharacter)
+  const [characterAgeGroup, setCharacterAgeGroup] = useState('adult')
+  const [characterAgeNumber, setCharacterAgeNumber] = useState('30')
+  const [characterGender, setCharacterGender] = useState('male')
   const [selectedEmotion, setSelectedEmotion] = useState(initialEmotion)
   const [activeScriptTab, setActiveScriptTab] = useState('hi')
 
@@ -44,11 +47,48 @@ export default function RecordEmotionModal({
     if (initialCharacter) {
       setCharacterName(initialCharacter)
       setIsNewChar(false)
+      const existing = characters.find(
+        (c) => c.name.toLowerCase() === initialCharacter.toLowerCase()
+      )
+      if (existing) {
+        if (existing.age_group) setCharacterAgeGroup(existing.age_group)
+        if (existing.age) setCharacterAgeNumber(String(existing.age))
+        if (existing.gender) setCharacterGender(existing.gender)
+      }
     }
     if (initialEmotion) {
       setSelectedEmotion(initialEmotion)
     }
-  }, [initialCharacter, initialEmotion])
+  }, [initialCharacter, initialEmotion, characters])
+
+  const handleSelectExistingChar = (name) => {
+    setCharacterName(name)
+    const existing = characters.find((c) => c.name.toLowerCase() === name.toLowerCase())
+    if (existing) {
+      if (existing.age_group) setCharacterAgeGroup(existing.age_group)
+      if (existing.age) setCharacterAgeNumber(String(existing.age))
+      if (existing.gender) setCharacterGender(existing.gender)
+    }
+  }
+
+  const handleAgeGroupChange = (group) => {
+    setCharacterAgeGroup(group)
+    if (group === 'child') setCharacterAgeNumber('8')
+    else if (group === 'young') setCharacterAgeNumber('20')
+    else if (group === 'adult') setCharacterAgeNumber('32')
+    else if (group === 'elder') setCharacterAgeNumber('65')
+  }
+
+  const handleAgeNumberChange = (val) => {
+    setCharacterAgeNumber(val)
+    const num = parseInt(val, 10)
+    if (!isNaN(num)) {
+      if (num <= 12) setCharacterAgeGroup('child')
+      else if (num <= 24) setCharacterAgeGroup('young')
+      else if (num <= 55) setCharacterAgeGroup('adult')
+      else setCharacterAgeGroup('elder')
+    }
+  }
 
   const emotionData = emotionsGuide[selectedEmotion] || {
     title: 'Neutral / Storyteller',
@@ -75,7 +115,6 @@ export default function RecordEmotionModal({
         const blob = new Blob(audioChunksRef.current, { type: 'audio/wav' })
         setAudioBlob(blob)
         setAudioUrl(URL.createObjectURL(blob))
-        // stop tracks
         stream.getTracks().forEach((track) => track.stop())
       }
 
@@ -128,6 +167,8 @@ export default function RecordEmotionModal({
       const formData = new FormData()
       formData.append('character_name', characterName.trim())
       formData.append('emotion_key', selectedEmotion)
+      formData.append('age', characterAgeNumber || characterAgeGroup)
+      formData.append('gender', characterGender)
       formData.append('audio_file', audioBlob, 'sample.wav')
 
       const res = await fetch('/api/characters/record-emotion', {
@@ -161,8 +202,8 @@ export default function RecordEmotionModal({
               <Mic className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">Character Emotion Voice Studio</h3>
-              <p className="text-[11px] text-slate-400">Clone authentic emotional delivery for Filmora</p>
+              <h3 className="text-sm font-bold text-white">Custom Character Voice Creation</h3>
+              <p className="text-[11px] text-slate-400">Clone authentic multi-emotion character voices with automatic tone adaptation</p>
             </div>
           </div>
           <button
@@ -181,7 +222,7 @@ export default function RecordEmotionModal({
             </div>
           )}
 
-          {/* Character & Emotion Selectors */}
+          {/* Character Name & Emotion Selector */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* 1. Character Name */}
             <div className="space-y-1.5">
@@ -192,7 +233,7 @@ export default function RecordEmotionModal({
                     type="text"
                     value={characterName}
                     onChange={(e) => setCharacterName(e.target.value)}
-                    placeholder="e.g. Gaurav, Mohan, Priya"
+                    placeholder="e.g. Mohan, Chintu, Priya, Dadi Ji"
                     className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-sky-500"
                   />
                   {characters.length > 0 && (
@@ -209,7 +250,7 @@ export default function RecordEmotionModal({
                 <div className="flex space-x-2">
                   <select
                     value={characterName}
-                    onChange={(e) => setCharacterName(e.target.value)}
+                    onChange={(e) => handleSelectExistingChar(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none"
                   >
                     {characters.map((c) => (
@@ -249,10 +290,91 @@ export default function RecordEmotionModal({
             </div>
           </div>
 
+          {/* Age & Gender Persona Settings */}
+          <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-sky-400" /> Character Persona: Age & Gender
+              </span>
+              <span className="text-[10px] text-emerald-400 font-mono">Auto Tone Shaper Active</span>
+            </div>
+
+            {/* Age Selection */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-slate-400">Character Age:</label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  { id: 'child', label: 'Child (5–12)', emoji: '👦' },
+                  { id: 'young', label: 'Young (13–24)', emoji: '🧑' },
+                  { id: 'adult', label: 'Adult (25–55)', emoji: '👨' },
+                  { id: 'elder', label: 'Elder (56+)', emoji: '👴' },
+                ].map((ag) => (
+                  <button
+                    key={ag.id}
+                    type="button"
+                    onClick={() => handleAgeGroupChange(ag.id)}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border flex items-center justify-center gap-1 transition-all ${
+                      characterAgeGroup === ag.id
+                        ? 'bg-sky-500/20 text-sky-300 border-sky-500/40 shadow-sm'
+                        : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+                    }`}
+                  >
+                    <span>{ag.emoji}</span>
+                    <span>{ag.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Gender Selection & Exact Age */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div className="space-y-1">
+                <label className="text-[11px] font-medium text-slate-400">Character Gender:</label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {[
+                    { id: 'male', label: 'Male' },
+                    { id: 'female', label: 'Female' },
+                    { id: 'neutral', label: 'Neutral' },
+                  ].map((g) => (
+                    <button
+                      key={g.id}
+                      type="button"
+                      onClick={() => setCharacterGender(g.id)}
+                      className={`px-2 py-1.5 rounded-lg text-xs font-medium border text-center transition-all ${
+                        characterGender === g.id
+                          ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
+                          : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+                      }`}
+                    >
+                      {g.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-medium text-slate-400">Approximate Age (Years):</label>
+                <input
+                  type="number"
+                  min="3"
+                  max="100"
+                  value={characterAgeNumber}
+                  onChange={(e) => handleAgeNumberChange(e.target.value)}
+                  className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 outline-none focus:border-sky-500"
+                  placeholder="e.g. 8, 22, 35, 70"
+                />
+              </div>
+            </div>
+
+            <p className="text-[11px] text-slate-400 leading-normal pt-1 border-t border-slate-800/80">
+              💡 Even if you record using your own voice, the engine will automatically shift pitch, vocal resonance, and formants to authentically sound like a {characterAgeGroup === 'child' ? 'childlike' : characterAgeGroup === 'elder' ? 'mature older' : characterAgeGroup} {characterGender} character!
+            </p>
+          </div>
+
           {/* Vocal Coach Advice Box */}
           <div className="p-4 rounded-xl bg-sky-950/20 border border-sky-500/20 space-y-1.5">
             <span className="text-[11px] font-semibold text-sky-400 uppercase tracking-wider flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5" /> Vocal Coach Direction
+              <Sparkles className="w-3.5 h-3.5" /> Vocal Direction for {emotionData.title}
             </span>
             <p className="text-xs text-slate-300 leading-relaxed">{emotionData.tip}</p>
           </div>

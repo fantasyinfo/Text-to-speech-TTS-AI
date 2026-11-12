@@ -1,7 +1,7 @@
 """
 Background Synthesis Job Manager for VoxStudio AI
 Manages non-blocking background voiceover synthesis, real-time sentence progress,
-dynamic Apple Silicon ETA tracking, and Server-Sent Events (SSE) updates.
+dynamic ETA tracking, and Server-Sent Events (SSE) updates.
 """
 
 import time
@@ -15,7 +15,7 @@ from typing import Optional, Dict, Any, AsyncGenerator
 from audio_engine import generate_voiceover_track
 from config import DEFAULT_PROJECT_NAME
 
-# Single-worker thread pool for Apple Silicon CPU inference
+# Single-worker thread pool for CPU neural inference
 _executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="xtts_worker")
 _lock = threading.Lock()
 _jobs: Dict[str, Dict[str, Any]] = {}
@@ -28,6 +28,8 @@ def create_synthesis_job(
     speed: float,
     project_name: str = DEFAULT_PROJECT_NAME,
     clip_title: str = "",
+    emotion: str = "neutral",
+    remove_silence: bool = False,
 ) -> str:
     """Enqueues a new synthesis job in the background and returns job_id immediately."""
     job_id = f"job_{uuid.uuid4().hex[:10]}"
@@ -51,6 +53,8 @@ def create_synthesis_job(
             "project": project_name,
             "clip_title": clip_title,
             "voice": voice_choice,
+            "emotion": emotion,
+            "remove_silence": remove_silence,
             "script_preview": preview,
             "result": None,
             "error": None,
@@ -66,6 +70,8 @@ def create_synthesis_job(
         speed=speed,
         project_name=project_name,
         clip_title=clip_title,
+        emotion=emotion,
+        remove_silence=remove_silence,
     )
 
     return job_id
@@ -79,6 +85,8 @@ def _run_job_worker(
     speed: float,
     project_name: str,
     clip_title: str,
+    emotion: str = "neutral",
+    remove_silence: bool = False,
 ):
     """Worker task executed in background thread."""
     t_start = time.time()
@@ -88,7 +96,7 @@ def _run_job_worker(
             return
         _jobs[job_id]["status"] = "processing"
         _jobs[job_id]["started_at"] = t_start
-        _jobs[job_id]["step"] = "Initializing Apple Silicon XTTS-v2 inference..."
+        _jobs[job_id]["step"] = "Initializing Neural Audio Engine..."
         _jobs[job_id]["progress"] = 5
 
     def on_progress(percent: int, step_desc: str, current_sen: int, total_sen: int, eta: float):
@@ -114,6 +122,8 @@ def _run_job_worker(
             speed=float(speed),
             project_name=project_name,
             clip_title=clip_title or "",
+            emotion=emotion,
+            remove_silence=remove_silence,
             progress_callback=on_progress,
         )
 

@@ -55,3 +55,8 @@ models/
 .env.local
 .env.*.local
 
+# Node & Frontend
+frontend/node_modules/
+node_modules/
+.npm/
+

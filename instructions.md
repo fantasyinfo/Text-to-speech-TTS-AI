@@ -1,8 +1,8 @@
-# 🎙️ Local Multi-Character Voice Studio (macOS Apple Silicon)
+# 🎙️ VoxStudio AI: Multi-Character SaaS Voice Studio (Apple Silicon)
 
-A local, 100% free, private, and unlimited Text-to-Speech (TTS) and Voice Cloning web studio powered by **Coqui XTTS-v2**, **Gradio**, and **FFmpeg** (`libmp3lame`).
+A local, 100% private, and unlimited Text-to-Speech (TTS) and Voice Cloning SaaS web application built with **React + Vite + Tailwind CSS**, powered by **Coqui XTTS-v2** and **FastAPI** on Apple Silicon (M-Series).
 
-Engineered specifically for **macOS Apple Silicon (M1 / M2 / M3 / M4)** to generate high-quality **Hindi (`hi`)** and **English (`en`)** storytelling tracks with **10 distinct character emotions** and direct **192kbps MP3 export** ready for **Filmora**, **Premiere Pro**, and **DaVinci Resolve**.
+Engineered to match modern SaaS standards (like **ElevenLabs** and modern executive dashboards) to generate high-quality **Hindi (`hi`)** and **English (`en`)** storytelling tracks with **10 distinct character emotions**, dynamic project workspaces, inline audio renaming, and direct **192kbps MP3 export** for **Filmora**, **Premiere Pro**, and **DaVinci Resolve**.
 
 ---
 
@@ -10,25 +10,44 @@ Engineered specifically for **macOS Apple Silicon (M1 / M2 / M3 / M4)** to gener
 
 ```text
 audioAI/
-├── app.py                 # Gradio web UI & XTTS-v2 multi-emotion synthesis engine
-├── requirements.txt       # Dependencies (PyTorch, Coqui XTTS-v2, Gradio, FFmpeg)
+├── run.py                 # Single-command launcher (FastAPI + React SaaS UI)
+├── api_server.py          # High-performance FastAPI REST API backend
+├── app.py                 # Alternative Gradio interface (<450 lines)
+├── config.py              # Central settings, paths, styles, presets & 10 emotion prompts
+├── text_processor.py      # Universal 15-Layer Devanagari Linguistic Normalization Engine
+├── project_manager.py     # Workspace isolation, project creation, audio rename, delete & ZIP export
+├── voice_manager.py       # Character profile vault, emotion badges, and reference voice saving
+├── audio_engine.py        # Apple Silicon XTTS-v2 inference, sentence pacing & 192kbps MP3 export
+├── frontend/              # Modern React + Vite + Tailwind CSS SaaS Frontend
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Sidebar.jsx           # Obsidian navigation sidebar with workspace sections
+│   │   │   ├── TopNavbar.jsx         # Project switcher, new project modal & ZIP export
+│   │   │   ├── StudioView.jsx        # ElevenLabs-style TTS studio & live waveform visualizer
+│   │   │   ├── DashboardView.jsx     # Executive AP & audio metrics dashboard
+│   │   │   ├── ProjectsView.jsx      # Workspace folder manager with cards
+│   │   │   ├── MediaLibraryView.jsx  # Complete audio takes browser with inline rename
+│   │   │   ├── CharacterVaultView.jsx# Character emotion matrix & sample auditions
+│   │   │   ├── RecordEmotionModal.jsx# Vocal coach recording studio with Hindi/English scripts
+│   │   │   └── AudioPlayerBar.jsx    # Persistent bottom scrubber player with speed control
+│   │   ├── App.jsx                   # Central state management & API coordinator
+│   │   └── index.css                 # Dark obsidian theme & sleek scrollbars
+│   ├── dist/                         # Pre-compiled high-performance production build
+│   └── package.json                  # React 18, Vite 5, Lucide React, Tailwind CSS
+├── requirements.txt       # Python dependencies (PyTorch, Coqui XTTS-v2, FastAPI, FFmpeg)
 ├── .venv/                 # Dedicated Apple Silicon Python 3.11 virtual environment
 ├── voices/                # Stored character voice reference files by emotion
-│   ├── README.md          # Guide for reference voice files
-│   ├── gaurav_neutral.wav # (Example) Base storytelling voice
-│   ├── gaurav_sad.wav     # (Example) Sad/heartbroken voice
-│   ├── gaurav_crying.wav  # (Example) Choked/crying voice
-│   └── gaurav_angry.wav   # (Example) Angry confrontation voice
-├── outputs/               # Auto-saved 192kbps MP3 audio files for Filmora
-└── instructions.md        # Comprehensive studio guide & vocal scripts
+└── outputs/               # Isolated project workspace folders
+    ├── Default_Project/   # Default audio exports (older takes safely preserved)
+    └── <Project_Name>/    # Dedicated subfolder for each project's MP3 takes
 ```
 
 ---
 
-## ⚡ 2. Quick Start
+## ⚡ 2. Quick Start (SaaS React + Vite Experience)
 
 ### Step 1: Activate Virtual Environment
-Open your terminal in `/Users/gauravsharma/Documents/audioAI` and run:
+Open your terminal in `/Users/gauravsharma/Documents/audioAI`:
 
 ```bash
 cd /Users/gauravsharma/Documents/audioAI
@@ -37,10 +56,18 @@ source .venv/bin/activate
 
 ### Step 2: Launch the Studio
 ```bash
-python app.py
+python run.py
 ```
 
-Open your browser at:
+Your browser will automatically open:
+👉 **http://127.0.0.1:8000**
+
+*(Optional) For live React frontend development with hot-module reloading:*
+```bash
+cd frontend
+npm run dev
+```
+*(Runs on `http://localhost:5173` with automatic API proxying to FastAPI on port 8000).*
 👉 **http://127.0.0.1:7860**
 
 ---
@@ -220,3 +247,27 @@ To eliminate mispronunciations, tokenization stutter, and alignment glitches acr
 
 10. **Broadcast Audio Normalization**:
     - Reference voice recordings and final MP3 exports undergo automated silence trimming and EBU R128 loudness normalization (`-16 LUFS`), ensuring crystal-clear voice cloning and zero dead air.
+
+---
+
+## 🗂️ 6. Project Workspaces & Media Library Admin Panel
+
+AudioAI includes a complete multi-project workspace system designed for organizing full storytelling series, film episodes, and commercial spots.
+
+### 📁 1. Dedicated Project Workspaces:
+- **Active Project Selector**: Located in the top navigation bar. Every generated audio take is automatically routed into `outputs/<project_name>/`.
+- **Instant Project Creation**: Enter a project name (e.g., `Horror_Ep1`, `Podcast_Episode_5`, `Commercial_Ad`) and click **➕ Create**. The workspace folder is immediately created and made active.
+- **Persistent Project Isolation**: Switch between different projects anytime from the homepage dropdown to instantly access older takes and recordings without cluttering a single directory.
+
+### 🎛️ 2. Media Library & Admin Panel:
+Navigate to the **🗂️ Project Media Library & Admin Panel** tab:
+1. **Audio Browser**: Browse all audio takes generated inside the active project workspace.
+2. **Instant Preview**: Listen to any take using the built-in waveform player.
+3. **Direct Renaming**: Rename any audio file directly from the UI (e.g. rename `Custom_Test01_20261112.mp3` to `Scene_1_Take_3_Final`). File extensions (`.mp3`) are automatically preserved.
+4. **Track Deletion**: Remove unwanted takes with 1-click using **🗑️ Delete Selected Audio**.
+5. **Direct Download**: Download individual high-grade 192kbps MP3s straight to your Mac.
+
+### 📦 3. One-Click Batch ZIP Export:
+- In the top navigation bar or Admin Panel, click **📦 Download All Audio as ZIP**.
+- AudioAI compresses all audio takes in the active project into a clean archive (e.g., `Horror_Ep1_Audio_Export_20261112.zip`) for instant download and archiving.
+

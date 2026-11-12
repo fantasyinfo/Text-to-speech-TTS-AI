@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Optional
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -42,6 +42,14 @@ from voice_manager import (
 )
 from audio_engine import generate_voiceover_track, get_tts_model
 from text_processor import preprocess_script_text
+from job_manager import (
+    create_synthesis_job,
+    get_job_status,
+    get_active_jobs,
+    get_recent_jobs,
+    cancel_job,
+    stream_job_events,
+)
 
 app = FastAPI(title="VoxStudio AI API", version="2.0.0")
 
@@ -304,7 +312,69 @@ async def save_character_emotion_api(
 
 
 # ---------------------------------------------------------
-# Voiceover Studio Synthesis API
+# Background Synthesis Job APIs (Non-Blocking with ETA & SSE)
+# ---------------------------------------------------------
+@app.post("/api/jobs/generate")
+def api_create_job(req: GenerateAudioRequest):
+    if not req.script_text or not req.script_text.strip():
+        raise HTTPException(status_code=400, detail="Script text cannot be empty.")
+    if not req.voice_choice:
+        raise HTTPException(status_code=400, detail="Please select a character voice.")
+
+    job_id = create_synthesis_job(
+        script_text=req.script_text,
+        voice_choice=req.voice_choice,
+        language=req.language,
+        speed=req.speed,
+        project_name=req.project_name,
+        clip_title=req.clip_title or "",
+    )
+    job = get_job_status(job_id)
+    return {"success": True, "job_id": job_id, "job": job}
+
+
+@app.get("/api/jobs/active")
+def api_get_active_jobs():
+    return {"active_jobs": get_active_jobs()}
+
+
+@app.get("/api/jobs/recent")
+def api_get_recent_jobs():
+    return {"recent_jobs": get_recent_jobs()}
+
+
+@app.get("/api/jobs/{job_id}")
+def api_get_job(job_id: str):
+    job = get_job_status(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return job
+
+
+@app.get("/api/jobs/{job_id}/stream")
+async def api_stream_job(job_id: str):
+    job = get_job_status(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return StreamingResponse(
+        stream_job_events(job_id),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@app.post("/api/jobs/{job_id}/cancel")
+def api_cancel_job(job_id: str):
+    cancelled = cancel_job(job_id)
+    return {"success": cancelled, "job_id": job_id}
+
+
+# ---------------------------------------------------------
+# Voiceover Studio Synthesis API (Synchronous fallback)
 # ---------------------------------------------------------
 @app.post("/api/generate")
 def generate_audio_api(req: GenerateAudioRequest):

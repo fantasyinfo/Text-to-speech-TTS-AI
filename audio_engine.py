@@ -86,9 +86,11 @@ def generate_voiceover_track(
     speed: float,
     project_name: str = DEFAULT_PROJECT_NAME,
     clip_title: str = "",
+    progress_callback=None,
 ) -> tuple[str, str, str]:
     """
     Synthesizes script into high-grade MP3 voiceover stored inside outputs/<project_name>/.
+    Supports optional progress_callback(percent: int, step: str, current_sentence: int, total_sentences: int, eta_seconds: float)
     Returns (mp3_path_for_player, mp3_path_for_download, status_log).
     """
     if not script_text or not script_text.strip():
@@ -96,10 +98,17 @@ def generate_voiceover_track(
     if not voice_choice:
         raise gr.Error("Please select a character voice.")
 
+    if progress_callback:
+        progress_callback(3, "Initializing Apple Silicon XTTS-v2 engine...", 0, 0, 15.0)
+
     tts = get_tts_model()
     project_dir = get_project_dir(project_name)
 
     lang_code = "hi" if "Hindi" in language_label else "en"
+    
+    if progress_callback:
+        progress_callback(7, "Applying 15-Layer Devanagari Linguistic Normalization...", 0, 0, 14.0)
+
     processed_text = preprocess_script_text(script_text, lang_code)
     timestamp = time.strftime("%Y%m%d_%H%M%S")
 
@@ -125,16 +134,22 @@ def generate_voiceover_track(
             if match:
                 ref_file = VOICES_DIR / match.group(1).strip()
                 if ref_file.exists():
+                    if progress_callback:
+                        progress_callback(10, f"Conditioning vocal timbre from {ref_file.name}...", 0, 0, 12.0)
                     speaker_wav = prepare_reference_audio(str(ref_file), temp_dir_path)
         elif voice_choice.startswith("Custom Clone: "):
             filename = voice_choice.replace("Custom Clone: ", "").strip()
             ref_file = VOICES_DIR / filename
             if ref_file.exists():
+                if progress_callback:
+                    progress_callback(10, f"Conditioning vocal timbre from {filename}...", 0, 0, 12.0)
                 speaker_wav = prepare_reference_audio(str(ref_file), temp_dir_path)
         elif "Preset:" in voice_choice:
             clean_preset = voice_choice.replace("🎙️ Preset: ", "").strip()
             speaker_name = PRESET_VOICES.get(clean_preset, "Damien Black")
         elif custom_upload is not None:
+            if progress_callback:
+                progress_callback(10, "Normalizing custom uploaded voice sample...", 0, 0, 12.0)
             speaker_wav = prepare_reference_audio(custom_upload, temp_dir_path)
         else:
             speaker_name = "Damien Black"
@@ -148,13 +163,26 @@ def generate_voiceover_track(
         if not sentences:
             sentences = [processed_text]
 
+        total_sentences = len(sentences)
+        # Average XTTS sentence duration on Apple Silicon M-series is ~5.5-7.0s
+        est_per_sen = 6.0
+        current_eta = round(total_sentences * est_per_sen + 2.0, 1)
+
         sr = 24000
         # 280ms breath pause between sentences for realistic storytelling cadence
         pause_samples = int(sr * 0.28)
         pause_array = np.zeros(pause_samples, dtype=np.float32)
 
         combined_audio = []
+        sentence_times = []
+
         for idx, sen in enumerate(sentences):
+            sen_start_pct = int(12 + (idx / total_sentences) * 78)
+            step_desc = f"Synthesizing sentence {idx + 1} of {total_sentences} (Apple Silicon CPU)..."
+            if progress_callback:
+                progress_callback(sen_start_pct, step_desc, idx + 1, total_sentences, current_eta)
+
+            sen_t0 = time.time()
             if speaker_wav:
                 wav_chunk = tts.tts(
                     text=sen,
@@ -172,10 +200,29 @@ def generate_voiceover_track(
                     split_sentences=False,
                 )
 
+            sen_elapsed = time.time() - sen_t0
+            sentence_times.append(sen_elapsed)
+            avg_sen_time = sum(sentence_times) / len(sentence_times)
+            rem_sentences = total_sentences - (idx + 1)
+            current_eta = round(max(0.5, rem_sentences * avg_sen_time + 1.2), 1)
+
             trimmed_chunk = trim_tail_silence(wav_chunk, sr=sr)
             combined_audio.append(trimmed_chunk)
             if idx < len(sentences) - 1:
                 combined_audio.append(pause_array)
+
+            sen_done_pct = int(12 + ((idx + 1) / total_sentences) * 78)
+            if progress_callback and rem_sentences > 0:
+                progress_callback(
+                    sen_done_pct,
+                    f"Completed sentence {idx + 1}/{total_sentences}. Rendering next...",
+                    idx + 1,
+                    total_sentences,
+                    current_eta,
+                )
+
+        if progress_callback:
+            progress_callback(92, "Concatenating audio & applying 280ms breathing pauses...", total_sentences, total_sentences, 1.5)
 
         full_waveform = np.concatenate(combined_audio)
         sf.write(str(temp_wav), full_waveform, sr)
@@ -184,9 +231,15 @@ def generate_voiceover_track(
         print(f"Synthesis completed in {duration:.1f}s. Converting to Filmora MP3 in {project_dir.name}...")
 
     # Convert to Filmora-ready 192kbps MP3
+    if progress_callback:
+        progress_callback(96, "Encoding broadcast-grade 192kbps MP3 (libmp3lame)...", total_sentences, total_sentences, 0.8)
+
     convert_wav_to_mp3(temp_wav, final_mp3)
     if temp_wav.exists():
         temp_wav.unlink()
+
+    if progress_callback:
+        progress_callback(100, f"Generated in {duration:.1f}s — Ready for Filmora!", total_sentences, total_sentences, 0.0)
 
     status_msg = f"✅ Generated in {duration:.1f}s | Saved to '{project_name}/{final_mp3.name}'"
     return str(final_mp3), str(final_mp3), status_msg

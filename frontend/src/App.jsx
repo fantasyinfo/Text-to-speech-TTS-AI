@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Sidebar from './components/Sidebar'
 import TopNavbar from './components/TopNavbar'
 import StudioView from './components/StudioView'
@@ -9,6 +9,7 @@ import CharacterVaultView from './components/CharacterVaultView'
 import RecordEmotionModal from './components/RecordEmotionModal'
 import NewProjectModal from './components/NewProjectModal'
 import AudioPlayerBar from './components/AudioPlayerBar'
+import JobProgressWidget from './components/JobProgressWidget'
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState('studio')
@@ -20,8 +21,12 @@ export default function App() {
   const [stats, setStats] = useState(null)
   const [files, setFiles] = useState([])
   const [lastGenerated, setLastGenerated] = useState(null)
-  const [isGenerating, setIsGenerating] = useState(false)
   const [isExportingZip, setIsExportingZip] = useState(false)
+
+  // Background Job State
+  const [activeJob, setActiveJob] = useState(null)
+  const eventSourceRef = useRef(null)
+  const pollIntervalRef = useRef(null)
 
   // Audio Player State
   const [currentPlayingUrl, setCurrentPlayingUrl] = useState(null)
@@ -38,7 +43,7 @@ export default function App() {
   const [toast, setToast] = useState(null)
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type })
-    setTimeout(() => setToast(null), 4000)
+    setTimeout(() => setToast(null), 4500)
   }
 
   // Load initial data
@@ -79,6 +84,9 @@ export default function App() {
       const statsRes = await fetch('/api/stats')
       const statsData = await statsRes.json()
       setStats(statsData)
+
+      // 6. Check if any jobs are currently active in background
+      checkActiveJobs()
     } catch (err) {
       console.error('Error fetching initial data:', err)
     }
@@ -95,8 +103,27 @@ export default function App() {
     }
   }
 
+  // Check if any jobs are already running in background
+  const checkActiveJobs = async () => {
+    try {
+      const res = await fetch('/api/jobs/active')
+      const data = await res.json()
+      if (data.active_jobs && data.active_jobs.length > 0) {
+        const runningJob = data.active_jobs[0]
+        setActiveJob(runningJob)
+        trackJobProgress(runningJob.id, runningJob.project)
+      }
+    } catch (e) {
+      console.error('Failed to check active jobs:', e)
+    }
+  }
+
   useEffect(() => {
     fetchAllData()
+    return () => {
+      if (eventSourceRef.current) eventSourceRef.current.close()
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current)
+    }
   }, [])
 
   useEffect(() => {
@@ -105,7 +132,104 @@ export default function App() {
     }
   }, [activeProject])
 
-  // Handlers
+  // Real-Time Job Progress Tracker (SSE with Polling Fallback)
+  const trackJobProgress = (jobId, projectName) => {
+    if (eventSourceRef.current) eventSourceRef.current.close()
+    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current)
+
+    const onJobFinished = (job) => {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close()
+        eventSourceRef.current = null
+      }
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current)
+        pollIntervalRef.current = null
+      }
+
+      if (job.status === 'completed' && job.result) {
+        setLastGenerated(job.result)
+        showToast(`🎉 ${job.step || 'Voiceover generated successfully!'}`, 'success')
+        fetchProjectFiles(projectName || activeProject)
+        // Refresh dashboard stats
+        fetch('/api/stats')
+          .then((r) => r.json())
+          .then((s) => setStats(s))
+          .catch(() => {})
+      } else if (job.status === 'failed') {
+        showToast(`❌ Synthesis failed: ${job.error || 'Unknown error'}`, 'error')
+      }
+    }
+
+    try {
+      const es = new EventSource(`/api/jobs/${jobId}/stream`)
+      eventSourceRef.current = es
+
+      es.onmessage = (event) => {
+        try {
+          const updatedJob = JSON.parse(event.data)
+          setActiveJob(updatedJob)
+          if (
+            updatedJob.status === 'completed' ||
+            updatedJob.status === 'failed' ||
+            updatedJob.status === 'cancelled'
+          ) {
+            onJobFinished(updatedJob)
+          }
+        } catch (e) {
+          console.error('Error parsing SSE data:', e)
+        }
+      }
+
+      es.onerror = () => {
+        // Fallback to polling every 450ms
+        if (eventSourceRef.current) {
+          eventSourceRef.current.close()
+          eventSourceRef.current = null
+        }
+        if (!pollIntervalRef.current) {
+          pollIntervalRef.current = setInterval(async () => {
+            try {
+              const res = await fetch(`/api/jobs/${jobId}`)
+              if (res.ok) {
+                const updated = await res.json()
+                setActiveJob(updated)
+                if (
+                  updated.status === 'completed' ||
+                  updated.status === 'failed' ||
+                  updated.status === 'cancelled'
+                ) {
+                  onJobFinished(updated)
+                }
+              }
+            } catch (err) {
+              console.error('Polling error:', err)
+            }
+          }, 450)
+        }
+      }
+    } catch (err) {
+      console.error('SSE initialization failed, using polling fallback', err)
+      pollIntervalRef.current = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/jobs/${jobId}`)
+          if (res.ok) {
+            const updated = await res.json()
+            setActiveJob(updated)
+            if (
+              updated.status === 'completed' ||
+              updated.status === 'failed' ||
+              updated.status === 'cancelled'
+            ) {
+              onJobFinished(updated)
+            }
+          }
+        } catch (e) {}
+      }, 500)
+    }
+  }
+
+  // Audio Playback
   const handlePlayAudio = (url, title) => {
     if (currentPlayingUrl === url) {
       setIsPlaying(!isPlaying)
@@ -116,10 +240,11 @@ export default function App() {
     }
   }
 
+  // Non-Blocking Background Audio Generation
   const handleGenerateAudio = async (payload) => {
-    setIsGenerating(true)
     try {
-      const res = await fetch('/api/generate', {
+      showToast('⚡ Enqueueing background synthesis...', 'info')
+      const res = await fetch('/api/jobs/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -129,16 +254,24 @@ export default function App() {
         throw new Error(data.detail || 'Synthesis failed.')
       }
 
-      setLastGenerated(data)
-      showToast(data.status || `Saved ${data.filename}`)
-      fetchProjectFiles(activeProject)
-      // refresh stats
-      const statsRes = await fetch('/api/stats')
-      setStats(await statsRes.json())
+      const jobId = data.job_id
+      setActiveJob(data.job)
+      showToast('🎙️ Voiceover is rendering in the background!', 'success')
+      trackJobProgress(jobId, payload.project_name)
     } catch (err) {
       showToast(err.message, 'error')
-    } finally {
-      setIsGenerating(false)
+    }
+  }
+
+  const handleCancelJob = async (jobId) => {
+    try {
+      await fetch(`/api/jobs/${jobId}/cancel`, { method: 'POST' })
+      setActiveJob((prev) =>
+        prev ? { ...prev, status: 'cancelled', step: 'Cancelled by user', eta_seconds: 0 } : null
+      )
+      showToast('Background synthesis cancelled.', 'info')
+    } catch (err) {
+      console.error('Failed to cancel job:', err)
     }
   }
 
@@ -217,6 +350,9 @@ export default function App() {
     setIsRecordModalOpen(true)
   }
 
+  const isJobRunning =
+    activeJob && (activeJob.status === 'processing' || activeJob.status === 'queued')
+
   return (
     <div className="flex h-screen bg-[#070b14] text-slate-100 overflow-hidden font-sans">
       {/* Toast Notification */}
@@ -225,6 +361,8 @@ export default function App() {
           className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl border text-xs font-semibold shadow-2xl flex items-center space-x-2 animate-in slide-in-from-top duration-200 ${
             toast.type === 'error'
               ? 'bg-rose-950/90 border-rose-500/50 text-rose-300'
+              : toast.type === 'info'
+              ? 'bg-slate-900/90 border-slate-700 text-slate-200'
               : 'bg-sky-950/90 border-sky-500/50 text-sky-200'
           }`}
         >
@@ -253,6 +391,18 @@ export default function App() {
           isExportingZip={isExportingZip}
         />
 
+        {/* Global Floating Background Job Progress Banner (Visible in All Tabs) */}
+        {activeJob && (
+          <div className="px-8 pt-4 pb-1">
+            <JobProgressWidget
+              job={activeJob}
+              onCancelJob={handleCancelJob}
+              onDismiss={() => setActiveJob(null)}
+              onPlayResult={handlePlayAudio}
+            />
+          </div>
+        )}
+
         {/* Dynamic Tab Body */}
         <main className="flex-1 overflow-y-auto p-8 pb-32">
           {currentTab === 'studio' && (
@@ -260,7 +410,8 @@ export default function App() {
               voices={voices}
               activeProject={activeProject}
               onGenerateAudio={handleGenerateAudio}
-              isGenerating={isGenerating}
+              isGenerating={isJobRunning}
+              activeJob={activeJob}
               lastGenerated={lastGenerated}
               onPlayAudio={handlePlayAudio}
               currentPlayingUrl={currentPlayingUrl}
@@ -377,4 +528,3 @@ export default function App() {
     </div>
   )
 }
-

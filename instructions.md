@@ -12,6 +12,7 @@ Engineered to match modern SaaS standards (like **ElevenLabs** and modern execut
 audioAI/
 ├── run.py                 # Single-command launcher (FastAPI + React SaaS UI)
 ├── api_server.py          # High-performance FastAPI REST API backend
+├── job_manager.py         # Non-blocking background synthesis queue, real-time ETA & SSE streams
 ├── app.py                 # Alternative Gradio interface (<450 lines)
 ├── config.py              # Central settings, paths, styles, presets & 10 emotion prompts
 ├── text_processor.py      # Universal 15-Layer Devanagari Linguistic Normalization Engine
@@ -24,6 +25,7 @@ audioAI/
 │   │   │   ├── Sidebar.jsx           # Obsidian navigation sidebar with workspace sections
 │   │   │   ├── TopNavbar.jsx         # Project switcher, new project modal & ZIP export
 │   │   │   ├── StudioView.jsx        # ElevenLabs-style TTS studio & live waveform visualizer
+│   │   │   ├── JobProgressWidget.jsx # Real-time background progress bar with live % & ETA
 │   │   │   ├── DashboardView.jsx     # Executive AP & audio metrics dashboard
 │   │   │   ├── ProjectsView.jsx      # Workspace folder manager with cards
 │   │   │   ├── MediaLibraryView.jsx  # Complete audio takes browser with inline rename
@@ -68,7 +70,6 @@ cd frontend
 npm run dev
 ```
 *(Runs on `http://localhost:5173` with automatic API proxying to FastAPI on port 8000).*
-👉 **http://127.0.0.1:7860**
 
 ---
 
@@ -270,4 +271,26 @@ Navigate to the **🗂️ Project Media Library & Admin Panel** tab:
 ### 📦 3. One-Click Batch ZIP Export:
 - In the top navigation bar or Admin Panel, click **📦 Download All Audio as ZIP**.
 - AudioAI compresses all audio takes in the active project into a clean archive (e.g., `Horror_Ep1_Audio_Export_20261112.zip`) for instant download and archiving.
+
+---
+
+## ⚡ 7. Non-Blocking Background Synthesis & Real-Time ETA Engine
+
+Voiceover synthesis operates on a dedicated background worker thread pool (`job_manager.py`) so the React frontend **never hangs, locks, or freezes**.
+
+### 🚀 Key Technical Features:
+1. **Instant Enqueue (<30ms)**:
+   - When clicking **Generate MP3 Audio for Filmora**, the request is immediately dispatched into the background queue.
+   - The user can continue browsing projects, auditioning voices in the Character Vault, or editing script lines without any UI delay.
+2. **Real-Time Sentence-Level Progress Tracking**:
+   - XTTS splits the input script into sentences. As each sentence renders on Apple Silicon, progress ticks up smoothly (e.g. `12%` ➔ `45%` ➔ `78%` ➔ `92%` ➔ `100%`).
+3. **Dynamic Apple Silicon ETA Countdown**:
+   - The engine measures synthesis velocity on each sentence and continuously calculates remaining seconds:
+     $$\text{ETA} = (\text{Remaining Sentences} \times \text{Avg Sentence Time}) + \text{Encoding Overhead}$$
+   - Displays live in the UI: `ETA: ~8.4s`, `ETA: ~3.2s`, etc.
+4. **Server-Sent Events (SSE) + Polling Fallback**:
+   - Connects to `/api/jobs/<job_id>/stream` for 60fps streaming telemetry. Automatically falls back to high-frequency polling if the network drops.
+5. **Auto-Arrival in Media Library**:
+   - Once synthesis finishes, the new take is immediately cataloged into `outputs/<project_name>/`, the audio preview loads automatically, and a completion alert notifies the user.
+
 

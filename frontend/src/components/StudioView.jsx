@@ -20,6 +20,7 @@ export default function StudioView({
   activeProject,
   onGenerateAudio,
   isGenerating,
+  activeJob,
   lastGenerated,
   onPlayAudio,
   currentPlayingUrl,
@@ -222,12 +223,19 @@ export default function StudioView({
             <button
               type="submit"
               disabled={isGenerating || !scriptText.trim()}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-sky-500 via-sky-600 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-semibold text-sm shadow-lg shadow-sky-500/25 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-sky-500 via-sky-600 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-semibold text-sm shadow-lg shadow-sky-500/25 transition-all flex items-center justify-center space-x-2 disabled:opacity-75 disabled:cursor-not-allowed"
             >
-              {isGenerating ? (
+              {isGenerating && activeJob ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Synthesizing Voiceover on Apple Silicon...</span>
+                  <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  <span>
+                    Rendering in Background ({activeJob.progress}% • ETA: ~{activeJob.eta_seconds}s)
+                  </span>
+                </>
+              ) : isGenerating ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  <span>Submitting to Background Queue...</span>
                 </>
               ) : (
                 <>
@@ -247,7 +255,30 @@ export default function StudioView({
               <Volume2 className="w-4 h-4 text-sky-400" /> Active Audio Preview
             </h4>
 
-            {lastGenerated ? (
+            {isGenerating && activeJob ? (
+              <div className="p-4 rounded-xl bg-slate-900 border border-sky-500/40 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-medium text-sky-400 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-sky-400 animate-ping" />
+                    Rendering Take...
+                  </span>
+                  <span className="text-xs font-mono font-bold text-sky-400">
+                    {activeJob.progress}%
+                  </span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-sky-500 to-indigo-500 rounded-full transition-all duration-300"
+                    style={{ width: `${Math.max(5, activeJob.progress)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-slate-300 truncate">{activeJob.step}</p>
+                <div className="flex items-center justify-between text-[11px] font-mono text-slate-500">
+                  <span>ETA: ~{activeJob.eta_seconds}s</span>
+                  <span>Elapsed: {activeJob.elapsed_seconds}s</span>
+                </div>
+              </div>
+            ) : lastGenerated ? (
               <div className="space-y-4">
                 <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
                   <div className="flex items-center justify-between">

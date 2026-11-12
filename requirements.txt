@@ -1,0 +1,7 @@
+torch>=2.4.0
+torchaudio>=2.4.0
+torchcodec>=0.17.0
+coqui-tts>=0.27.0
+transformers>=4.57,<5
+six
+gradio>=5.0.0

@@ -5,5 +5,12 @@
     "age_group": "young",
     "gender": "male",
     "description": "Updated Narrator"
+  },
+  "shelly": {
+    "name": "Shelly",
+    "age": 30,
+    "age_group": "adult",
+    "gender": "female",
+    "description": "Adult Female"
   }
 }

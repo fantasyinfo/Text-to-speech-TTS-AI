@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updated_at": "2026-11-12T21:42:09.676688",
+  "updated_at": "2026-11-12T22:46:13.477020",
   "characters": {
     "test01": {
       "id": "test01",
@@ -19,6 +19,54 @@
       },
       "created_at": "2026-11-12T21:31:08.095350",
       "updated_at": "2026-11-12T21:42:09.676432"
+    },
+    "shelly": {
+      "id": "shelly",
+      "name": "Shelly",
+      "age": 30,
+      "age_group": "adult",
+      "gender": "female",
+      "description": "Adult Female",
+      "takes": {
+        "neutral": {
+          "emotion": "neutral",
+          "filename": "shelly_neutral.wav",
+          "filepath": "voices/shelly_neutral.wav",
+          "label": "Neutral / Storyteller"
+        },
+        "happy": {
+          "emotion": "happy",
+          "filename": "shelly_happy.wav",
+          "filepath": "voices/shelly_happy.wav",
+          "label": "Happy"
+        },
+        "sad": {
+          "emotion": "sad",
+          "filename": "shelly_sad.wav",
+          "filepath": "voices/shelly_sad.wav",
+          "label": "Sad"
+        },
+        "angry": {
+          "emotion": "angry",
+          "filename": "shelly_angry.wav",
+          "filepath": "voices/shelly_angry.wav",
+          "label": "Angry"
+        },
+        "whisper": {
+          "emotion": "whisper",
+          "filename": "shelly_whisper.wav",
+          "filepath": "voices/shelly_whisper.wav",
+          "label": "Whispering"
+        },
+        "dramatic": {
+          "emotion": "dramatic",
+          "filename": "shelly_dramatic.wav",
+          "filepath": "voices/shelly_dramatic.wav",
+          "label": "Dramatic"
+        }
+      },
+      "created_at": "2026-11-12T22:25:00.562427",
+      "updated_at": "2026-11-12T22:46:13.476982"
     }
   }
 }

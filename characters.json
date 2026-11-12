@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updated_at": "2026-11-12T22:46:13.477020",
+  "updated_at": "2026-11-12T22:50:53.923310",
   "characters": {
     "test01": {
       "id": "test01",
@@ -67,6 +67,54 @@
       },
       "created_at": "2026-11-12T22:25:00.562427",
       "updated_at": "2026-11-12T22:46:13.476982"
+    },
+    "gaurav_sharma": {
+      "id": "gaurav_sharma",
+      "name": "Gaurav Sharma",
+      "age": 30,
+      "age_group": "adult",
+      "gender": "male",
+      "description": "Adult Male",
+      "takes": {
+        "neutral": {
+          "emotion": "neutral",
+          "filename": "gaurav_sharma_neutral.wav",
+          "filepath": "voices/gaurav_sharma_neutral.wav",
+          "label": "Neutral / Storyteller"
+        },
+        "happy": {
+          "emotion": "happy",
+          "filename": "gaurav_sharma_happy.wav",
+          "filepath": "voices/gaurav_sharma_happy.wav",
+          "label": "Happy"
+        },
+        "sad": {
+          "emotion": "sad",
+          "filename": "gaurav_sharma_sad.wav",
+          "filepath": "voices/gaurav_sharma_sad.wav",
+          "label": "Sad"
+        },
+        "angry": {
+          "emotion": "angry",
+          "filename": "gaurav_sharma_angry.wav",
+          "filepath": "voices/gaurav_sharma_angry.wav",
+          "label": "Angry"
+        },
+        "whisper": {
+          "emotion": "whisper",
+          "filename": "gaurav_sharma_whisper.wav",
+          "filepath": "voices/gaurav_sharma_whisper.wav",
+          "label": "Whispering"
+        },
+        "dramatic": {
+          "emotion": "dramatic",
+          "filename": "gaurav_sharma_dramatic.wav",
+          "filepath": "voices/gaurav_sharma_dramatic.wav",
+          "label": "Dramatic"
+        }
+      },
+      "created_at": "2026-11-12T22:47:15.723595",
+      "updated_at": "2026-11-12T22:50:53.923264"
     }
   }
 }

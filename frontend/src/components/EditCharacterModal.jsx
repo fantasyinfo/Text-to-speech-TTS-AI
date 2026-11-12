@@ -15,11 +15,21 @@ import {
   Sparkles
 } from 'lucide-react'
 
+const DEFAULT_CORE_EMOTIONS = [
+  { id: 'neutral', title: 'Base Voice / Storyteller (Default & Recommended)' },
+  { id: 'happy', title: 'Happy / Upbeat' },
+  { id: 'sad', title: 'Sad / Emotional' },
+  { id: 'angry', title: 'Angry / Intense' },
+  { id: 'whisper', title: 'Whispering / Suspense' },
+  { id: 'dramatic', title: 'Dramatic / Theatrical' },
+]
+
 export default function EditCharacterModal({
   isOpen,
   onClose,
   character,
   emotionsGuide,
+  coreEmotions = [],
   onSaveSuccess,
   onDeleteSuccess,
   showToast,
@@ -35,6 +45,7 @@ export default function EditCharacterModal({
   // Audio update states
   const [audioMode, setAudioMode] = useState('keep') // 'keep', 'record', 'upload'
   const [selectedEmotion, setSelectedEmotion] = useState('neutral')
+  const [showAllEmotions, setShowAllEmotions] = useState(false)
   const [uploadedFile, setUploadedFile] = useState(null)
   const [isRecording, setIsRecording] = useState(false)
   const [recordedBlob, setRecordedBlob] = useState(null)
@@ -379,16 +390,45 @@ export default function EditCharacterModal({
 
             {audioMode !== 'keep' && (
               <div className="space-y-3 pt-2">
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs text-slate-400">Assign to Emotion:</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-400 font-medium">Assign to Emotion:</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowAllEmotions((prev) => !prev)}
+                    className="text-[10px] text-sky-400 hover:text-sky-300 font-medium"
+                  >
+                    {showAllEmotions ? '← Show Core Takes' : '+ All 121 styles'}
+                  </button>
+                </div>
+
+                {!showAllEmotions ? (
                   <select
                     value={selectedEmotion}
                     onChange={(e) => setSelectedEmotion(e.target.value)}
-                    className="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-200"
+                    className="w-full px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-200 outline-none focus:border-sky-500 font-medium"
                   >
+                    {(coreEmotions && coreEmotions.length > 0 ? coreEmotions : DEFAULT_CORE_EMOTIONS).map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.badge || c.title}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <select
+                    value={selectedEmotion}
+                    onChange={(e) => setSelectedEmotion(e.target.value)}
+                    className="w-full px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-200 outline-none focus:border-sky-500 font-medium"
+                  >
+                    <optgroup label="⭐ Core Foundation Takes" className="bg-slate-950 font-bold text-sky-400">
+                      {(coreEmotions && coreEmotions.length > 0 ? coreEmotions : DEFAULT_CORE_EMOTIONS).map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.badge || c.title}
+                        </option>
+                      ))}
+                    </optgroup>
                     {Object.keys(groupedEmotions).length > 0
                       ? Object.entries(groupedEmotions).map(([catName, list]) => (
-                          <optgroup key={catName} label={catName} className="bg-slate-950 font-bold text-sky-400">
+                          <optgroup key={catName} label={catName} className="bg-slate-950 font-bold text-indigo-400">
                             {list.map((emo) => (
                               <option key={emo.key} value={emo.key} className="bg-slate-900 text-white font-normal">
                                 {emo.title} — {emo.meaning}
@@ -402,7 +442,7 @@ export default function EditCharacterModal({
                           </option>
                         ))}
                   </select>
-                </div>
+                )}
 
                 {audioMode === 'upload' && (
                   <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-700 hover:border-sky-500 rounded-xl cursor-pointer bg-slate-900/50 transition-colors">

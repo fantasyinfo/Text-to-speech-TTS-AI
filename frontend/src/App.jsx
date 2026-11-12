@@ -20,6 +20,7 @@ export default function App() {
   const [characters, setCharacters] = useState([])
   const [emotionsGuide, setEmotionsGuide] = useState({})
   const [emotionCategories, setEmotionCategories] = useState([])
+  const [coreEmotions, setCoreEmotions] = useState([])
   const [stats, setStats] = useState(null)
   const [files, setFiles] = useState([])
   const [lastGenerated, setLastGenerated] = useState(null)
@@ -86,6 +87,9 @@ export default function App() {
       }
       if (emoData.categories) {
         setEmotionCategories(emoData.categories)
+      }
+      if (emoData.core_emotions) {
+        setCoreEmotions(emoData.core_emotions)
       }
 
       // 5. Dashboard Stats
@@ -562,6 +566,7 @@ export default function App() {
                 initialEmotion="neutral"
                 characters={characters}
                 emotionsGuide={emotionsGuide}
+                coreEmotions={coreEmotions}
                 onSaveSuccess={() => {
                   fetchAllData()
                   showToast('Emotion voice recorded & saved successfully!')
@@ -582,6 +587,7 @@ export default function App() {
           initialEmotion={recordInitialEmotion}
           characters={characters}
           emotionsGuide={emotionsGuide}
+          coreEmotions={coreEmotions}
           onSaveSuccess={() => {
             fetchAllData()
             showToast('Character emotion sample saved successfully!')
@@ -599,6 +605,7 @@ export default function App() {
           }}
           character={editingCharacter}
           emotionsGuide={emotionsGuide}
+          coreEmotions={coreEmotions}
           onSaveSuccess={() => {
             fetchAllData()
             showToast('Character profile saved and updated!')

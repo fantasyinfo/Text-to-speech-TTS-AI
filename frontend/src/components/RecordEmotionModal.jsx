@@ -10,8 +10,68 @@ import {
   Sparkles,
   CheckCircle2,
   Volume2,
-  HelpCircle
+  HelpCircle,
+  Sliders,
+  ChevronDown,
+  Layers
 } from 'lucide-react'
+
+const DEFAULT_CORE_EMOTIONS = [
+  {
+    id: 'neutral',
+    title: 'Base Voice / Storyteller',
+    badge: '🎙️ Base Voice / Storyteller (Default & Recommended)',
+    desc: 'Natural conversational voice for standard dialogue & narration (Only 1 take needed!)',
+    tip: '🎯 Vocal Coach Tip: Speak naturally with relaxed shoulders in your normal conversational pitch and pace.',
+    hindi: 'पुराने जमाने की बात है, जब घने जंगलों के बीच एक शांत नदी बहती थी। वहां के लोग कहते थे कि उस नदी में एक अनोखा जादू है।',
+    english: 'Deep within the ancient mountains, where the mist never seemed to clear, an old traveler began his long journey toward the silent valley.'
+  },
+  {
+    id: 'happy',
+    title: 'Happy / Upbeat',
+    badge: '😊 Happy / Upbeat (प्रसन्न / खुश)',
+    desc: 'Positive, joyful, energetic, and humorous delivery',
+    tip: '🎯 Vocal Coach Tip: Smile with your cheekbones lifted to brighten acoustic vocal tract resonance.',
+    hindi: 'अरे वाह! मुझे तो यकीन ही नहीं हो रहा कि हमने ये कर दिखाया! आज तो पूरे गाँव में जश्न मनाने का दिन है!',
+    english: 'Yes! We actually did it! Grab your bags right now, the grand adventure is finally beginning!'
+  },
+  {
+    id: 'sad',
+    title: 'Sad / Emotional',
+    badge: '😢 Sad / Emotional (उदास / गमगीन)',
+    desc: 'Sorrow, grief, heartbreak, and tender emotional moments',
+    tip: '🎯 Vocal Coach Tip: Drop vocal energy, soften volume, and speak with slow, solemn exhalations.',
+    hindi: 'सब कुछ इतनी जल्दी खत्म हो जाएगा, मैंने कभी सपने में भी नहीं सोचा था... अब इन वीरान रास्तों पर मेरा कोई नहीं रहा।',
+    english: 'Everything slipped away so quickly... I never imagined standing here alone in the cold silence.'
+  },
+  {
+    id: 'angry',
+    title: 'Angry / Intense',
+    badge: '😡 Angry / Intense (क्रोधित / आक्रामक)',
+    desc: 'Commanding, sharp, frustrated, and forceful delivery',
+    tip: '🎯 Vocal Coach Tip: Deliver with sharp consonants, forward projection, and assertive chest voice.',
+    hindi: 'बस, बहुत हो चुका! तुम्हारी इतनी हिम्मत कैसे हुई मेरे पीठ पीछे यह सब करने की? निकल जाओ मेरी नज़रों के सामने से!',
+    english: 'Enough! How dare you stand there and look me in the eye after what you did! Don\'t you dare say another word!'
+  },
+  {
+    id: 'whisper',
+    title: 'Whispering / Suspense',
+    badge: '🤫 Whispering / Suspense (फुसफुसाहट / खौफ)',
+    desc: 'Soft, low-volume, secretive, and tense delivery',
+    tip: '🎯 Vocal Coach Tip: Drop volume to an intimate stage whisper with rapid, suspenseful breath cadence.',
+    hindi: '(धीमी कांपती आवाज़ में) श्शश... बिल्कुल चुप रहो... कोई है जो अँधेरे में हमारे बिल्कुल पीछे खड़ा है...',
+    english: '(Tense whisper) Shh... be completely quiet! Someone is turning the doorknob right now...'
+  },
+  {
+    id: 'dramatic',
+    title: 'Dramatic / Theatrical',
+    badge: '🎭 Dramatic / Theatrical (नाटकीय / सस्पेंस)',
+    desc: 'Building tension, cliffhangers, urgency, and authoritative storytelling',
+    tip: '🎯 Vocal Coach Tip: Use dramatic pauses, deliberate cadence, and rich dynamic contrast.',
+    hindi: 'और फिर, अचानक एक गगनभेदी धमाका हुआ! चारों तरफ सन्नाटा छा गया, और वो रहस्यमयी आकृति सामने आई...',
+    english: 'And then, in a heartbeat that felt like an eternity, the shadows parted and the truth stood revealed.'
+  }
+]
 
 export default function RecordEmotionModal({
   isOpen,
@@ -20,6 +80,7 @@ export default function RecordEmotionModal({
   initialEmotion = 'neutral',
   characters = [],
   emotionsGuide = {},
+  coreEmotions = [],
   onSaveSuccess,
 }) {
   const [characterName, setCharacterName] = useState(initialCharacter)
@@ -28,8 +89,11 @@ export default function RecordEmotionModal({
   const [characterAgeNumber, setCharacterAgeNumber] = useState('30')
   const [characterGender, setCharacterGender] = useState('male')
   const [selectedEmotion, setSelectedEmotion] = useState(initialEmotion)
+  const [showAllEmotions, setShowAllEmotions] = useState(false)
 
-  // Group emotions by category for structured dropdown
+  const activeCoreList = (coreEmotions && coreEmotions.length > 0) ? coreEmotions : DEFAULT_CORE_EMOTIONS
+
+  // Group emotions by category for structured dropdown (advanced mode)
   const groupedEmotions = React.useMemo(() => {
     const groups = {}
     Object.entries(emotionsGuide).forEach(([key, data]) => {
@@ -102,11 +166,15 @@ export default function RecordEmotionModal({
     }
   }
 
-  const emotionData = emotionsGuide[selectedEmotion] || {
-    title: 'Neutral / Storyteller',
-    tip: 'Sit tall with relaxed shoulders. Keep your pitch in a comfortable mid-range.',
-    hindi: 'पुराने जमाने की बात है, जब घने जंगलों के बीच एक शांत नदी बहती थी...',
-    english: 'Deep within the ancient mountains, where the mist never seemed to clear...',
+  const activeCore = activeCoreList
+  const foundInCore = activeCore.find((c) => c.id === selectedEmotion)
+  const foundInGuide = emotionsGuide[selectedEmotion]
+
+  const emotionData = foundInCore || foundInGuide || {
+    title: 'Base Voice / Storyteller',
+    tip: '🎯 Vocal Coach Tip: Speak naturally with relaxed shoulders in your normal conversational pitch and pace.',
+    hindi: 'पुराने जमाने की बात है, जब घने जंगलों के बीच एक शांत नदी बहती थी। वहां के लोग कहते थे कि उस नदी में एक अनोखा जादू है।',
+    english: 'Deep within the ancient mountains, where the mist never seemed to clear, an old traveler began his long journey toward the silent valley.',
   }
 
   // Start Mic Recording
@@ -287,28 +355,64 @@ export default function RecordEmotionModal({
 
             {/* 2. Choose Emotion */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300">2. Emotion to Record</label>
-              <select
-                value={selectedEmotion}
-                onChange={(e) => setSelectedEmotion(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none"
-              >
-                {Object.keys(groupedEmotions).length > 0
-                  ? Object.entries(groupedEmotions).map(([catName, list]) => (
-                      <optgroup key={catName} label={catName} className="bg-slate-950 font-bold text-sky-400">
-                        {list.map((emo) => (
-                          <option key={emo.key} value={emo.key} className="bg-slate-900 text-white font-normal">
-                            {emo.title} — {emo.meaning}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))
-                  : Object.keys(emotionsGuide).map((key) => (
-                      <option key={key} value={key}>
-                        {emotionsGuide[key]?.badge || key}
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-slate-300">2. Emotion to Record</label>
+                <button
+                  type="button"
+                  onClick={() => setShowAllEmotions((prev) => !prev)}
+                  className="text-[10px] text-sky-400 hover:text-sky-300 font-medium transition-colors"
+                >
+                  {showAllEmotions ? '← Show 6 Core Foundations' : '+ Show all 121 styles (Advanced)'}
+                </button>
+              </div>
+
+              {!showAllEmotions ? (
+                <select
+                  value={selectedEmotion}
+                  onChange={(e) => setSelectedEmotion(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-sky-500 font-medium"
+                >
+                  {activeCoreList.map((emo) => (
+                    <option key={emo.id} value={emo.id} className="bg-slate-900 text-white py-1">
+                      {emo.badge || emo.title}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <select
+                  value={selectedEmotion}
+                  onChange={(e) => setSelectedEmotion(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none focus:border-sky-500 font-medium"
+                >
+                  <optgroup label="⭐ Core Foundation Anchors (Recommended)" className="bg-slate-950 font-bold text-sky-400">
+                    {activeCoreList.map((emo) => (
+                      <option key={emo.id} value={emo.id} className="bg-slate-900 text-white font-normal">
+                        {emo.badge || emo.title}
                       </option>
                     ))}
-              </select>
+                  </optgroup>
+                  {Object.entries(groupedEmotions).map(([catName, list]) => (
+                    <optgroup key={catName} label={catName} className="bg-slate-950 font-bold text-indigo-400">
+                      {list.map((emo) => (
+                        <option key={emo.key} value={emo.key} className="bg-slate-900 text-white font-normal">
+                          {emo.title} — {emo.meaning}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              )}
+            </div>
+          </div>
+
+          {/* Smart Foundation Banner */}
+          <div className="p-3.5 rounded-xl bg-gradient-to-r from-sky-500/10 via-indigo-500/10 to-transparent border border-sky-500/20 flex items-start gap-2.5">
+            <Sparkles className="w-4 h-4 text-sky-400 mt-0.5 flex-shrink-0" />
+            <div className="text-xs space-y-0.5">
+              <span className="font-semibold text-white">💡 Pro-Tip: Only 1 Base Voice is needed to start!</span>
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                Record your natural <strong className="text-sky-300">Base Voice / Storyteller</strong> sample once. All 121 delivery styles (Heartbroken, Furious, Panicked, Meditative, etc.) in the Voiceover Studio are immediately unlocked and will automatically adapt from your base voice or closest anchor take using our AI acoustic tone engine.
+              </p>
             </div>
           </div>
 

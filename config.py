@@ -50,14 +50,29 @@ if EMOTIONS_DATA_FILE.exists():
             _raw_data = json.load(_f)
             EMOTION_CATEGORIES = _raw_data.get("categories", [])
             EMOTIONS = _raw_data.get("emotions", {})
+            CORE_EMOTIONS = _raw_data.get("core_emotions", [])
+            EMOTION_TO_ANCHOR_MAP = _raw_data.get("anchor_map", {})
     except Exception:
         EMOTION_CATEGORIES = []
         EMOTIONS = {}
+        CORE_EMOTIONS = []
+        EMOTION_TO_ANCHOR_MAP = {}
 else:
     EMOTION_CATEGORIES = []
     EMOTIONS = {}
+    CORE_EMOTIONS = []
+    EMOTION_TO_ANCHOR_MAP = {}
 
+CORE_EMOTION_CHOICES = [(c["badge"], c["id"]) for c in CORE_EMOTIONS]
 EMOTION_CHOICES = [(data["badge"], key) for key, data in EMOTIONS.items()]
+
+
+def get_emotion_anchor(emotion_key: str) -> str:
+    """Returns the core anchor take (neutral, happy, sad, angry, whisper, dramatic) for any of the 121 emotions."""
+    if not emotion_key:
+        return "neutral"
+    clean = emotion_key.strip().lower()
+    return EMOTION_TO_ANCHOR_MAP.get(clean, "neutral")
 
 # ---------------------------------------------------------
 # Professional Tailwind Admin Styling

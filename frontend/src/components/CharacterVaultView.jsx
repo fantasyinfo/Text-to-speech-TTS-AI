@@ -81,8 +81,11 @@ export default function CharacterVaultView({
                     {char.description && (
                       <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">{char.description}</p>
                     )}
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      {char.recorded_count} of {char.total_emotions} emotions recorded
+                    <p className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5">
+                      <span>{char.recorded_count} of {char.total_emotions} foundation takes</span>
+                      {char.is_ready && (
+                        <span className="text-emerald-400 font-medium">• All 121 delivery styles active</span>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -109,9 +112,9 @@ export default function CharacterVaultView({
               {/* Completeness Progress Bar */}
               <div>
                 <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="text-[11px] text-slate-400 font-medium">Emotional Range</span>
+                  <span className="text-[11px] text-slate-400 font-medium">Foundation Vocal Range</span>
                   <span className="font-bold text-sky-400 font-mono text-[11px]">
-                    {char.completeness_percent}% complete
+                    {char.recorded_count}/{char.total_emotions} Core Takes ({char.completeness_percent}%)
                   </span>
                 </div>
                 <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">

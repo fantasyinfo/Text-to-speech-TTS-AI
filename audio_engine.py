@@ -436,12 +436,23 @@ def generate_voiceover_track(
             if match:
                 chosen_filename = match.group(1).strip()
                 ref_file = None
-                # If specific emotion requested and not neutral, check for emotion take
+                # If specific emotion requested, check exact take, then mapped anchor take, then base voice
                 if emotion and emotion.lower() != "neutral" and char_name:
                     char_clean = re.sub(r"[^a-zA-Z0-9_-]", "_", char_name.lower())
+                    # 1. Check exact requested emotion take (e.g. char_heartbroken.wav)
                     emo_file = VOICES_DIR / f"{char_clean}_{emotion.lower()}.wav"
                     if emo_file.exists():
                         ref_file = emo_file
+                    else:
+                        # 2. Check mapped foundation anchor take (e.g. sad for heartbroken, happy for delighted, angry for furious)
+                        from config import get_emotion_anchor
+                        anchor = get_emotion_anchor(emotion)
+                        if anchor and anchor != emotion.lower():
+                            anchor_file = VOICES_DIR / f"{char_clean}_{anchor}.wav"
+                            if anchor_file.exists():
+                                ref_file = anchor_file
+
+                # 3. Fallback to base voice take or chosen file
                 if not ref_file:
                     fallback_file = VOICES_DIR / chosen_filename
                     if fallback_file.exists():

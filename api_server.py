@@ -24,6 +24,8 @@ from config import (
     DEFAULT_PROJECT_NAME,
     EMOTIONS,
     EMOTION_CATEGORIES,
+    CORE_EMOTIONS,
+    EMOTION_TO_ANCHOR_MAP,
     PRESET_VOICES,
     FFMPEG_BIN,
 )
@@ -219,7 +221,12 @@ def get_audio_stream(project_name: str, filename: str):
 @app.get("/api/emotions-guide")
 def get_emotions_guide():
     """Returns the 15 emotion categories & 121 delivery styles with acting tips and scripts."""
-    return {"emotions": EMOTIONS, "categories": EMOTION_CATEGORIES}
+    return {
+        "emotions": EMOTIONS,
+        "categories": EMOTION_CATEGORIES,
+        "core_emotions": CORE_EMOTIONS,
+        "anchor_map": EMOTION_TO_ANCHOR_MAP,
+    }
 
 
 @app.get("/api/characters")
@@ -243,7 +250,12 @@ def list_characters_with_emotions():
                 elif stem == clean_char:
                     char_emotions["neutral"] = f"/api/voices/raw/{f.name}"
 
-        recorded_count = sum(1 for emo in EMOTIONS if emo in char_emotions)
+        core_ids = [c["id"] for c in CORE_EMOTIONS] if CORE_EMOTIONS else ["neutral", "happy", "sad", "angry", "whisper", "dramatic"]
+        recorded_core_count = sum(1 for cid in core_ids if cid in char_emotions)
+        total_core = len(core_ids)
+        total_recorded = len(char_emotions)
+        has_base = ("neutral" in char_emotions) or total_recorded > 0
+
         meta = get_character_metadata(char_name)
         char_entry = store.get("characters", {}).get(clean_char, {})
         roster.append({
@@ -253,9 +265,11 @@ def list_characters_with_emotions():
             "age_group": meta.get("age_group", "adult"),
             "gender": meta.get("gender", "male"),
             "description": meta.get("description", ""),
-            "recorded_count": recorded_count,
-            "total_emotions": len(EMOTIONS),
-            "completeness_percent": int((recorded_count / len(EMOTIONS)) * 100),
+            "recorded_count": recorded_core_count,
+            "total_emotions": total_core,
+            "total_recorded_all": total_recorded,
+            "completeness_percent": int((recorded_core_count / total_core) * 100) if total_core else 100,
+            "is_ready": has_base,
             "created_at": char_entry.get("created_at"),
             "updated_at": char_entry.get("updated_at"),
             "emotions": {

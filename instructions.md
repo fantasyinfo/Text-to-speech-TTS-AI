@@ -293,4 +293,28 @@ Voiceover synthesis operates on a dedicated background worker thread pool (`job_
 5. **Auto-Arrival in Media Library**:
    - Once synthesis finishes, the new take is immediately cataloged into `outputs/<project_name>/`, the audio preview loads automatically, and a completion alert notifies the user.
 
+---
+
+## 📖 8. Universal Devanagari Punctuation & Special Character Sanitization
+
+AudioAI includes automated linguistic normalization for all standard Hindi punctuation marks and Devanagari special characters to prevent tokenizer hallucinations, clicks, and awkward audio artifacts:
+
+| Category | Input Symbols | Automated Transformation & Acoustical Handling |
+| :--- | :--- | :--- |
+| **Sentence Boundaries** | `।` (Purna Viram), `॥` (Double Purna Viram) | `॥` is normalized to `। ` with 280ms natural diaphragm breathing space. |
+| **Clause Pauses** | `,` (Alpa Viram), `;` (Ardha Viram), `:` (Dialogue Colon) | `;` and `:` normalized to `, ` to eliminate glottal stops and awkward pauses. |
+| **Dramatic Silence** | `…` (Ellipsis), `...` | Normalized to sentence pause (`। `) to create dramatic suspense without audio clicks. |
+| **Dashes & Connectors** | `-` (Yojak), `—` (Em-dash), `–` (En-dash) | Reduplicated words (`धीरे-धीरे` ➔ `धीरे धीरे`) unified to space; dashes converted to clause pause `, `. |
+| **Acting Directions** | `(हंसते हुए)`, `(रोते हुए)`, `(धीमे स्वर में)`, `[pause]` | Detected via regex and converted into natural breath pauses (silence), preventing the model from speaking the instruction! |
+| **Brackets & Quotes** | `()`, `[]`, `""`, `‘’`, `“”` | Stripped cleanly to prevent BPE token fragmentation. |
+| **Sacred Symbol** | `ॐ` (Om / Aum) | Transliterated to `ओम` to leverage native high-frequency Devanagari subwords for smooth, resonant chanting. |
+| **Vowel Prolongation** | `ऽ` (Avagraha) | Stripped (e.g. `अरेऽऽऽ` ➔ `अरे`, `शिवोऽहम्` ➔ `शिवोहम`) to prevent `[UNK]` token crashes. |
+| **Abbreviations** | `॰` (Sankshep Chihn), `.` | Expanded: `डॉ॰` ➔ `डॉक्टर `, `पं॰` ➔ `पंडित `, `प्रो॰` ➔ `प्रोफेसर `, `क्र॰` ➔ `क्रमांक `. |
+| **Word-Final Halant** | `्` on word ends (`अर्थात्`, `भगवान्`, `विद्वान्`) | Normalized to open consonant (`अर्थात`, `भगवान`, `विद्वान`) while preserving mid-word conjuncts (`क्या`, `वाक्य`). |
+| **Vedic Accents** | `॒` (Anudatta U+0952), `॑` (Udatta U+0951) | Stripped completely to prevent audio pops and token breaks. |
+| **Nuktas & Visarga** | `़` (Nukta), `ः` (Visarga) | Nuktas mapped to native subwords (`क़` ➔ `क`, `ज़ि` ➔ `जि`); `दुःख` ➔ `दुख`. |
+| **Chandrabindu** | `ँ` | Converted to `ं` (Anusvara) to leverage fused subwords (`हंसना`, `आंख`, `चांद`, `गांव`). |
+| **Devanagari Digits** | `० १ २ ३ ४ ५ ६ ७ ८ ९` | Converted to standard digits ➔ spoken Hindi words via `hindi_num2words`. |
+
+
 

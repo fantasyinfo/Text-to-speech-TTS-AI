@@ -78,6 +78,61 @@ def trim_tail_silence(raw_wav, sr=24000, thresh=0.015, pad_ms=60):
     return arr
 
 
+def merge_short_sentence_chunks(sentences: list[str], min_words: int = 5, min_chars: int = 24) -> list[str]:
+    """
+    XTTS-v2 autoregressive GPT tends to hallucinate trailing mumbled syllables or random phonemes
+    when sentences are extremely short (fewer than 5 words or 24 characters, e.g. 'ओम नम शिवाय।', 'हाँ!', 'ठीक है।').
+    This function intelligently merges very short fragments with adjacent sentences using a natural
+    clause comma (', '), providing sufficient semantic attention context while preserving natural
+    breathing cadence and preventing tail hallucinations.
+    """
+    clean_sents = [s.strip() for s in sentences if s and s.strip()]
+    if not clean_sents:
+        return []
+    if len(clean_sents) == 1:
+        return clean_sents
+
+    merged = []
+    buffer = ""
+
+    for s in clean_sents:
+        if not buffer:
+            buffer = s
+        else:
+            word_count = len(re.findall(r"\S+", buffer))
+            char_count = len(buffer)
+            if word_count < min_words or char_count < min_chars:
+                # Buffer is too short; merge with current sentence
+                # Replace terminal punctuation on buffer with a natural comma pause
+                buffer = re.sub(r"[।!?.]+\s*$", "", buffer).strip() + ", " + s
+            else:
+                merged.append(buffer)
+                buffer = s
+
+    # Handle the remaining buffer
+    if buffer:
+        word_count = len(re.findall(r"\S+", buffer))
+        char_count = len(buffer)
+        if (word_count < min_words or char_count < min_chars) and merged:
+            # Merge with previous sentence
+            prev = merged.pop()
+            prev = re.sub(r"[।!?.]+\s*$", "", prev).strip() + ", " + buffer
+            merged.append(prev)
+        else:
+            merged.append(buffer)
+
+    return merged
+
+
+def get_safe_max_new_tokens(text: str, speed: float) -> int | None:
+    """Caps runaway generation on isolated short sentences (e.g. 1-3 words) to prevent hallucinated audio."""
+    words = len(re.findall(r"\S+", text))
+    if words <= 12:
+        tokens = int((words * 22 + 40) / max(0.5, speed))
+        return min(600, max(50, tokens))
+    return None
+
+
 def generate_voiceover_track(
     script_text: str,
     voice_choice: str,
@@ -158,10 +213,15 @@ def generate_voiceover_track(
         start_time = time.time()
 
         # Split into sentences for clean breathing and alignment
-        sentences = tts.synthesizer.split_into_sentences(processed_text, lang_code)
-        sentences = [s.strip() for s in sentences if s and s.strip()]
+        raw_sentences = tts.synthesizer.split_into_sentences(processed_text, lang_code)
+        raw_sentences = [s.strip() for s in raw_sentences if s and s.strip()]
+        if not raw_sentences:
+            raw_sentences = [processed_text]
+
+        # Merge tiny chunks (< 5 words or < 24 chars) to prevent XTTS autoregressive hallucination
+        sentences = merge_short_sentence_chunks(raw_sentences, min_words=5, min_chars=24)
         if not sentences:
-            sentences = [processed_text]
+            sentences = raw_sentences
 
         total_sentences = len(sentences)
         # Average XTTS sentence duration on Apple Silicon M-series is ~5.5-7.0s
@@ -183,6 +243,14 @@ def generate_voiceover_track(
                 progress_callback(sen_start_pct, step_desc, idx + 1, total_sentences, current_eta)
 
             sen_t0 = time.time()
+            extra_kwargs = {
+                "temperature": 0.70,
+                "repetition_penalty": 10.0,
+            }
+            safe_tokens = get_safe_max_new_tokens(sen, float(speed))
+            if safe_tokens is not None:
+                extra_kwargs["max_new_tokens"] = safe_tokens
+
             if speaker_wav:
                 wav_chunk = tts.tts(
                     text=sen,
@@ -190,6 +258,7 @@ def generate_voiceover_track(
                     language=lang_code,
                     speed=float(speed),
                     split_sentences=False,
+                    **extra_kwargs,
                 )
             else:
                 wav_chunk = tts.tts(
@@ -198,6 +267,7 @@ def generate_voiceover_track(
                     language=lang_code,
                     speed=float(speed),
                     split_sentences=False,
+                    **extra_kwargs,
                 )
 
             sen_elapsed = time.time() - sen_t0

@@ -332,19 +332,56 @@ HINDI_LOANWORDS = {
 PROTECTED_HINDI_VERBS = {"किया", "दिया", "लिया", "पिया", "जिया", "सिया"}
 
 # ---------------------------------------------------------
+# Devanagari Punctuation & Special Character Mappings
+# ---------------------------------------------------------
+HINDI_ABBREVIATIONS = {
+    r"डॉ[॰\.]": "डॉक्टर ",
+    r"डा[॰\.]": "डॉक्टर ",
+    r"पं[॰\.]": "पंडित ",
+    r"प्रो[॰\.]": "प्रोफेसर ",
+    r"क्र[॰\.]": "क्रमांक ",
+    r"सं[॰\.]": "संख्या ",
+    r"इ[॰\.]": "इत्यादि ",
+    r"कै[॰\.]": "कैप्टन ",
+    r"ले[॰\.]": "लेफ्टिनेंट ",
+    r"इं[॰\.]": "इंजीनियर ",
+    r"श्री\.": "श्री ",
+    r"श्रीमती\.": "श्रीमती ",
+}
+
+# Acting instructions and emotional cues in brackets/parentheses that should be silence/pause, not spoken
+ACTING_CUES_REGEX = re.compile(
+    r"\((?:हंसते हुए|हँसते हुए|रोते हुए|रुंधे गले से|सिसकी|हल्की सिसकी|धीमी आवाज में|धीमी आवाज़ में|धीमे स्वर में|चिल्लाते हुए|गुस्से में|क्रोध से|उदासी से|गंभीरता से|मुस्कुराते हुए|गहरी सांस|कौतूहल से|अचंभे से|फुसफुसाते हुए|pause|break|sigh|whispering|crying|laughing|shouting)[^)]*\)",
+    flags=re.IGNORECASE,
+)
+
+# Word-final halant (e.g. अर्थात् -> अर्थात, भगवान् -> भगवान, विद्वान् -> विद्वान)
+# Negative lookahead ensures mid-word conjuncts (क्या, वाक्य, समाप्त) are preserved!
+WORD_FINAL_HALANT = re.compile(
+    r"([क-ह])्(?=[\s।॥,;:?!…\-\—\(\)\[\]\"\'“”‘’«»‹›]|$)", flags=re.UNICODE
+)
+
+# ---------------------------------------------------------
 # 3. Universal Devanagari Normalization Engine
 # ---------------------------------------------------------
 def preprocess_script_text(text: str, lang_code: str) -> str:
     """Comprehensive linguistic & phonetic pre-processing engine:
     1. Strips invisible formatting & zero-width noise (ZWJ, ZWNJ, BOM).
-    2. Transliterates common English / Hinglish loanwords into clean Devanagari.
-    3. Normalizes Hindi numerals, fractions, decimals, clock times, percentages, and currencies.
-    4. Resolves BPE tokenization pitfalls for ALL Devanagari conjuncts & names (प्रिया -> प्रीया, शुक्रिया -> शुक्रीया).
-    5. Resolves greedy matra collapse on feminine plurals (कहानियां -> कहानीयां, गाड़ियां -> गाड़ीयां, रोटियां -> रोटीयां).
-    6. Normalizes Chandrabindu (ँ) to Anusvara (ं) to leverage fused subwords (हँसना -> हंसना).
-    7. Cleans unhandled Nukta characters and Visarga breaks (दुःख -> दुख, स्वतः -> स्वत).
-    8. Unifies hyphens in reduplicated words (गरमा-गरम -> गरमा गरम, धीरे-धीरे -> धीरे धीरे).
-    9. Ensures clean punctuation spacing for breath-aligned sentence segmentation.
+    2. Strips Vedic stress marks (Udatta U+0951, Anudatta U+0952).
+    3. Transliterates sacred Om (ॐ -> ओम) to leverage native Devanagari tokens.
+    4. Removes Avagraha (ऽ) vowel prolongations that cause tokenizer hallucination.
+    5. Expands Hindi abbreviations (डॉ॰ -> डॉक्टर, पं॰ -> पंडित, प्रो॰ -> प्रोफेसर).
+    6. Converts acting emotion cues in brackets to dramatic pause silence (not spoken).
+    7. Transliterates common English / Hinglish loanwords into clean Devanagari.
+    8. Normalizes Hindi numerals, fractions, decimals, clock times, percentages, and currencies.
+    9. Resolves BPE tokenization pitfalls for ALL Devanagari conjuncts & names (प्रिया -> प्रीया, शुक्रिया -> शुक्रीया).
+    10. Resolves greedy matra collapse on feminine plurals (कहानियां -> कहानीयां, गाड़ियां -> गाड़ीयां, रोटियां -> रोटीयां).
+    11. Normalizes Chandrabindu (ँ) to Anusvara (ं) to leverage fused subwords (हँसना -> हंसना).
+    12. Cleans unhandled Nukta characters and Visarga breaks (दुःख -> दुख, स्वतः -> स्वत).
+    13. Normalizes word-final halant (अर्थात् -> अर्थात, भगवान् -> भगवान).
+    14. Handles dialogue colons (:), semicolons (;), dashes (—, –), and quotes ("").
+    15. Replaces Ellipsis (…) and Double Purna Viram (॥) with clean sentence boundaries.
+    16. Ensures clean punctuation spacing for breath-aligned sentence segmentation.
     """
     if not text:
         return ""
@@ -354,14 +391,31 @@ def preprocess_script_text(text: str, lang_code: str) -> str:
         # 1. Strip invisible Unicode junk (ZWJ, ZWNJ, ZWSP, BOM, soft hyphen)
         text = re.sub(r"[\u200b-\u200f\ufeff\u00ad]", "", text)
 
-        # 2. Convert Devanagari numerals (०-९) to standard digits (0-9)
+        # 2. Strip Vedic stress marks (Udatta U+0951, Anudatta U+0952)
+        text = re.sub(r"[\u0951\u0952]", "", text)
+
+        # 3. Transliterate Om (ॐ -> ओम)
+        text = text.replace("ॐ", "ओम")
+
+        # 4. Remove Avagraha (ऽ)
+        text = re.sub(r"ऽ+", "", text)
+
+        # 5. Expand abbreviations (डॉ॰ -> डॉक्टर, पं॰ -> पंडित)
+        for pat, rep in HINDI_ABBREVIATIONS.items():
+            text = re.sub(pat, rep, text)
+        text = text.replace("॰", " ")
+
+        # 6. Acting directions in parentheses -> convert to natural clause pause (silence)
+        text = ACTING_CUES_REGEX.sub(", ", text)
+
+        # 7. Convert Devanagari numerals (०-९) to standard digits (0-9)
         text = text.translate(str.maketrans("०१२३४५६७८९", "0123456789"))
 
-        # 3. Transliterate English loanwords into clean Devanagari
+        # 8. Transliterate English loanwords into clean Devanagari
         for en_word, hi_word in HINDI_LOANWORDS.items():
             text = re.sub(rf"\b{re.escape(en_word)}\b", hi_word, text, flags=re.IGNORECASE)
 
-        # 4. Clock / Time format (e.g., '1:30' or '10:00 बजे' -> 'एक बजकर तीस मिनट' / 'दस बजे')
+        # 9. Clock / Time format (e.g., '1:30' or '10:00 बजे' -> 'एक बजकर तीस मिनट' / 'दस बजे')
         def _time_repl(m):
             hr, mn = int(m.group(1)), int(m.group(2))
             if mn == 0:
@@ -369,19 +423,19 @@ def preprocess_script_text(text: str, lang_code: str) -> str:
             return f"{hindi_num2words(hr)} बजकर {hindi_num2words(mn)} मिनट "
         text = re.sub(r"\b(\d{1,2}):(\d{2})(?:\s*बजे)?", _time_repl, text)
 
-        # 5. Common fractions & decimals
+        # 10. Common fractions & decimals
         text = re.sub(r"\b1/2\b", "आधा", text)
         text = re.sub(r"\b1/4\b", "एक चौथाई", text)
         text = re.sub(r"\b3/4\b", "तीन चौथाई", text)
         text = re.sub(r"\b1\.5\b", "डेढ़", text)
         text = re.sub(r"\b2\.5\b", "ढाई", text)
 
-        # 6. Currency symbols and percentages
+        # 11. Currency symbols and percentages
         text = re.sub(r"₹\s*(\d+)", r"\1 रुपये", text)
         text = re.sub(r"\$\s*(\d+)", r"\1 डॉलर", text)
         text = re.sub(r"(\d+)\s*%", r"\1 प्रतिशत", text)
 
-        # 7. Pre-expand standalone numbers into spoken Hindi words
+        # 12. Pre-expand standalone numbers into spoken Hindi words
         def _replace_num(match):
             try:
                 return hindi_num2words(int(match.group(0)))
@@ -389,14 +443,14 @@ def preprocess_script_text(text: str, lang_code: str) -> str:
                 return match.group(0)
         text = re.sub(r"\b\d+\b", _replace_num, text)
 
-        # 8. Chandrabindu (ँ) to Anusvara (ं) - enables XTTS pre-fused subwords (हँसना -> हंसना, गाँव -> गांव)
+        # 13. Chandrabindu (ँ) to Anusvara (ं) - enables XTTS pre-fused subwords (हँसना -> हंसना, गाँव -> गांव)
         text = text.replace("ँ", "ं")
 
-        # 9. Visarga (ः) cleanup - avoids mid-word tokenization breaks (दुःख -> दुख, स्वतः -> स्वत)
+        # 14. Visarga (ः) cleanup - avoids mid-word tokenization breaks (दुःख -> दुख, स्वतः -> स्वत)
         text = text.replace("दुःख", "दुख").replace("दु:ख", "दुख")
         text = re.sub(r"([क-ह])ः", r"\1", text)
 
-        # 10. Nukta normalization for characters that lack native pre-fused subwords in XTTS
+        # 15. Nukta normalization for characters that lack native pre-fused subwords in XTTS
         text = re.sub(r"क़", "क", text)
         text = re.sub(r"ख़", "ख", text)
         text = re.sub(r"ग़", "ग", text)
@@ -404,11 +458,7 @@ def preprocess_script_text(text: str, lang_code: str) -> str:
         text = re.sub(r"फ़ि", "फि", text)
         text = re.sub(r"([क-ह])ाफ़\b", r"\1ाफ", text)
 
-        # 11. Hyphens between Devanagari reduplicated words (धीरे-धीरे -> धीरे धीरे, गरमा-गरम -> गरमा गरम)
-        text = re.sub(r"([क-ह]़?[\u093e-\u094c]?)-([क-ह])", r"\1 \2", text)
-
-        # 12. Universal 'िया' / 'ियों' / 'ियां' / 'िए' normalization
-        # Resolves tokenization breaks across names, conjuncts and feminine plurals
+        # 16. Universal 'िया' / 'ियों' / 'ियां' / 'िए' normalization
         def _iya_repl(m):
             full = m.group(0)
             if full in PROTECTED_HINDI_VERBS:
@@ -420,16 +470,40 @@ def preprocess_script_text(text: str, lang_code: str) -> str:
         iya_pattern = r"([क-ह]़?(?:्[क-ह]़?)*)ि(य[ाोे][ंँ]?)"
         text = re.sub(iya_pattern, _iya_repl, text)
 
-        # 13. Dramatic pause normalization (... or -- to clean clause boundaries)
-        text = re.sub(r"\.{3,}", "। ", text)
-        text = re.sub(r"--+", ", ", text)
-        text = text.replace("॥", "।")
+        # 17. Word-final halant (अर्थात् -> अर्थात, भगवान् -> भगवान)
+        text = WORD_FINAL_HALANT.sub(r"\1", text)
 
-        # 14. Ensure sentence terminators have trailing spaces for clean sentence segmentation
+        # 18. Ellipsis (...) or (…), Double Purna Viram (॥) -> clean sentence boundaries
+        text = re.sub(r"(?:…|\.{2,})+", "। ", text)
+        text = text.replace("॥", "। ")
+
+        # 19. Semicolons and dialogue colons -> clause pause
+        text = re.sub(r"\s*;\s*", ", ", text)
+        text = re.sub(r"\s*:\s*", ", ", text)
+
+        # 20. Em-dash, en-dash, horizontal bar -> clause pause
+        text = re.sub(r"[—–―]", ", ", text)
+        text = re.sub(r"\s+-\s+", ", ", text)
+
+        # 21. Hyphens between Devanagari reduplicated words (धीरे-धीरे -> धीरे धीरे, गरमा-गरम -> गरमा गरम)
+        text = re.sub(r"([क-ह]़?[\u093e-\u094c]?)-([क-ह])", r"\1 \2", text)
+
+        # 22. Strip quotation marks, stray bullets, symbols, and remaining brackets cleanly
+        text = re.sub(r"[\(\)\[\]\{\}]", " ", text)
+        text = re.sub(r'["\'“”‘’«»‹›]', "", text)
+        text = re.sub(r"[\*•\#\@\~\^\_\\\|\/]", " ", text)
+
+        # 23. Collapse repeated punctuation marks & clean punctuation clashes
+        text = re.sub(r"([।!?])\s*,+", r"\1 ", text)
+        text = re.sub(r"(?:,\s*)+", ", ", text)
+        text = re.sub(r"(?:।\s*)+", "। ", text)
+
+        # 24. Ensure sentence terminators have clean trailing spaces
         text = re.sub(r"([।!?])([^\s])", r"\1 \2", text)
-        text = re.sub(r"(\.)([^\s\d])", r"\1 \2", text)
+        text = re.sub(r",([^\s])", r", \1", text)
 
-        # 15. Collapse excessive whitespace
+        # 25. Remove leading punctuation and collapse excessive whitespace
+        text = re.sub(r"^[\s,]+", "", text)
         text = re.sub(r"\s+", " ", text).strip()
 
     else:
@@ -437,8 +511,11 @@ def preprocess_script_text(text: str, lang_code: str) -> str:
         text = re.sub(r"[\u200b-\u200f\ufeff\u00ad]", "", text)
         text = re.sub(r"\$\s*(\d+)", r"\1 dollars", text)
         text = re.sub(r"(\d+)\s*%", r"\1 percent", text)
-        text = re.sub(r"\.{3,}", ". ", text)
+        text = re.sub(r"(?:…|\.{2,})+", ". ", text)
+        text = re.sub(r"[—–―]", ", ", text)
         text = re.sub(r"--+", ", ", text)
+        text = re.sub(r'["\'“”‘’«»‹›]', "", text)
+        text = re.sub(r"[\(\)\[\]\{\}]", " ", text)
         text = re.sub(r"\s+", " ", text).strip()
 
     return text

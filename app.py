@@ -6,11 +6,121 @@ import shutil
 import tempfile
 import subprocess
 from pathlib import Path
+import numpy as np
+import soundfile as sf
 import gradio as gr
 
 # Automatically acknowledge Coqui CPML terms for non-interactive / automated environments
 os.environ["COQUI_TOC_ACK"] = "1"
 os.environ["COQUI_TOS_AGREED"] = "1"
+
+# --- Fix: Monkey-patch XTTS tokenizer for Hindi number expansion ---
+# By default, num2words raises NotImplementedError for Hindi ('hi').
+# We patch the tokenizer to convert numbers, ordinals, and decimals into proper Hindi words.
+import TTS.tts.layers.xtts.tokenizer as xtts_tokenizer
+
+HINDI_NUMS_0_TO_99 = [
+    "शून्य", "एक", "दो", "तीन", "चार", "पांच", "छह", "सात", "आठ", "नौ",
+    "दस", "ग्यारह", "बारह", "तेरह", "चौदह", "पंद्रह", "सोलह", "सत्रह", "अठारह", "उन्नीस",
+    "बीस", "इक्कीस", "बाईस", "तेईस", "चौबीस", "पच्चीस", "छब्बीस", "सत्ताईस", "अट्ठाईस", "उनतीस",
+    "तीस", "इकतीस", "बत्तीस", "तैंतीस", "चौंतीस", "पैंतीस", "छत्तीस", "सैंतीस", "अड़तीस", "उनतालीस",
+    "चालीस", "इकतालीस", "बयालीस", "तैंतालीस", "चवालीस", "पैंतालीस", "छियालीस", "सैंतालीस", "अड़तालीस", "उनचास",
+    "पचास", "इक्यावन", "बावन", "तिरपन", "चौवन", "पचपन", "छप्पन", "सत्तावन", "अट्ठावन", "उनसठ",
+    "साठ", "इकसठ", "बासठ", "तिरसठ", "चौंसठ", "पैंसठ", "छियासठ", "सड़सठ", "अड़सठ", "उनहत्तर",
+    "सत्तर", "इकहत्तर", "बहत्तर", "तिहत्तर", "चौहत्तर", "पचहत्तर", "छिहत्तर", "सतहत्तर", "अठहत्तर", "उन्यासी",
+    "अस्सी", "इक्यासी", "बयासी", "तिरासी", "चौरासी", "पचासी", "छियासी", "सत्तासी", "अट्ठासी", "नवासी",
+    "नब्बे", "इक्यानवे", "बानवे", "तिरानवे", "चौरानवे", "पचानवे", "छियानवे", "सत्तानवे", "अठानवे", "निन्यानवे",
+]
+
+
+def hindi_num2words(n: int) -> str:
+    """Converts integers up to crores into natural Hindi Devanagari words."""
+    if n < 0:
+        return "माइनस " + hindi_num2words(-n)
+    if n < 100:
+        return HINDI_NUMS_0_TO_99[n]
+    if n < 1000:
+        hundreds = n // 100
+        rem = n % 100
+        res = HINDI_NUMS_0_TO_99[hundreds] + " सौ"
+        if rem > 0:
+            res += " " + HINDI_NUMS_0_TO_99[rem]
+        return res
+    if n < 100000:
+        thousands = n // 1000
+        rem = n % 1000
+        res = hindi_num2words(thousands) + " हज़ार"
+        if rem > 0:
+            res += " " + hindi_num2words(rem)
+        return res
+    if n < 10000000:
+        lakhs = n // 100000
+        rem = n % 100000
+        res = hindi_num2words(lakhs) + " लाख"
+        if rem > 0:
+            res += " " + hindi_num2words(rem)
+        return res
+    crores = n // 10000000
+    rem = n % 10000000
+    res = hindi_num2words(crores) + " करोड़"
+    if rem > 0:
+        res += " " + hindi_num2words(rem)
+    return res
+
+
+orig_expand_number = xtts_tokenizer._expand_number
+orig_expand_ordinal = xtts_tokenizer._expand_ordinal
+orig_expand_decimal = xtts_tokenizer._expand_decimal_point
+
+
+def safe_expand_number(m, lang="en"):
+    if lang == "hi":
+        try:
+            return hindi_num2words(int(m.group(0)))
+        except Exception:
+            return m.group(0)
+    try:
+        return orig_expand_number(m, lang=lang)
+    except Exception:
+        return m.group(0)
+
+
+def safe_expand_ordinal(m, lang="en"):
+    if lang == "hi":
+        try:
+            val = int(m.group(1))
+            ordinal_map = {1: "पहला", 2: "दूसरा", 3: "तीसरा", 4: "चौथा", 5: "पांचवां"}
+            return ordinal_map.get(val, hindi_num2words(val) + "वां")
+        except Exception:
+            return m.group(1)
+    try:
+        return orig_expand_ordinal(m, lang=lang)
+    except Exception:
+        return m.group(1)
+
+
+def safe_expand_decimal_point(m, lang="en"):
+    amount = m.group(1).replace(",", ".")
+    if lang == "hi":
+        try:
+            parts = amount.split(".")
+            int_part = hindi_num2words(int(parts[0])) if parts[0] else "शून्य"
+            if len(parts) > 1 and parts[1]:
+                dec_digits = " ".join(hindi_num2words(int(d)) for d in parts[1])
+                return f"{int_part} दशमलव {dec_digits}"
+            return int_part
+        except Exception:
+            return amount
+    try:
+        return orig_expand_decimal(m, lang=lang)
+    except Exception:
+        return amount
+
+
+# Apply the safe tokenizer patches
+xtts_tokenizer._expand_number = safe_expand_number
+xtts_tokenizer._expand_ordinal = safe_expand_ordinal
+xtts_tokenizer._expand_decimal_point = safe_expand_decimal_point
 
 from TTS.api import TTS
 
@@ -305,7 +415,7 @@ def get_character_status_markdown(character_name: str) -> str:
 
     recorded_count = sum(1 for k in EMOTIONS if k in existing_emotions)
     display_title = character_name.strip().replace("_", " ").replace("-", " ").title()
-    header = f"### 🎭 Character: **{display_title}** ({recorded_count}/{len(EMOTIONS)} emotions ready)\n\n"
+    header = f"**Character: {display_title}** &nbsp;•&nbsp; ({recorded_count}/{len(EMOTIONS)} emotions recorded)\n\n"
     return header + " &nbsp;•&nbsp; ".join(badges)
 
 
@@ -334,8 +444,228 @@ def get_next_unrecorded_emotion(character_name: str, current_emotion: str = "neu
     return current_emotion
 
 
+# Comprehensive English loanwords & common names used in Hindi dialogues, mapped to natural Devanagari pronunciation
+HINDI_LOANWORDS = {
+    # Workspace & Everyday objects
+    "desk": "डेस्क",
+    "tiffin": "टिफिन",
+    "office": "ऑफिस",
+    "school": "स्कूल",
+    "college": "कॉलेज",
+    "class": "क्लास",
+    "student": "स्टूडेंट",
+    "teacher": "टीचर",
+    "principal": "प्रिंसिपल",
+    "hospital": "अस्पताल",
+    "doctor": "डॉक्टर",
+    "nurse": "नर्स",
+    "clinic": "क्लिनिक",
+    "medicine": "दवा",
+    "patient": "मरीज",
+    "ambulance": "एंबुलेंस",
+    # Tech & gadgets
+    "phone": "फ़ोन",
+    "mobile": "मोबाइल",
+    "call": "कॉल",
+    "laptop": "लैपटॉप",
+    "computer": "कंप्यूटर",
+    "screen": "स्क्रीन",
+    "mouse": "माउस",
+    "keyboard": "कीबोर्ड",
+    "charger": "चार्जर",
+    "cable": "केबल",
+    "battery": "बैटरी",
+    "camera": "कैमरा",
+    "video": "वीडियो",
+    "photo": "फ़ोटो",
+    "audio": "ऑडियो",
+    "film": "फिल्म",
+    "movie": "मूवी",
+    "message": "मैसेज",
+    "chat": "चैट",
+    "post": "पोस्ट",
+    "status": "स्टेटस",
+    "link": "लिंक",
+    "site": "साइट",
+    "website": "वेबसाइट",
+    "app": "ऐप",
+    "online": "ऑनलाइन",
+    "offline": "ऑफलाइन",
+    "net": "नेट",
+    "internet": "इंटरनेट",
+    "wifi": "वाईफ़ाई",
+    "password": "पासवर्ड",
+    "data": "डेटा",
+    "system": "सिस्टम",
+    "software": "सॉफ्टवेयर",
+    # Transportation & Places
+    "car": "कार",
+    "bike": "बाइक",
+    "bus": "बस",
+    "train": "ट्रेन",
+    "station": "स्टेशन",
+    "metro": "मेट्रो",
+    "flight": "फ्लाइट",
+    "airport": "एयरपोर्ट",
+    "taxi": "टैक्सी",
+    "auto": "ऑटो",
+    "driver": "ड्राइवर",
+    "road": "रोड",
+    "highway": "हाईवे",
+    "traffic": "ट्रैफिक",
+    "bridge": "ब्रिज",
+    "hotel": "होटल",
+    "restaurant": "रेस्टोरेंट",
+    "cafe": "कैफे",
+    "mall": "मॉल",
+    "market": "मार्केट",
+    "shop": "शॉप",
+    "bank": "बैंक",
+    "atm": "एटीएम",
+    "park": "पार्क",
+    "garden": "गार्डन",
+    "gym": "जिम",
+    # Home & Furniture
+    "room": "रूम",
+    "table": "टेबल",
+    "chair": "चेयर",
+    "bed": "बेड",
+    "door": "डोर",
+    "window": "विंडो",
+    "light": "लाइट",
+    "fan": "फैन",
+    "switch": "स्विच",
+    "bottle": "बोतल",
+    "bag": "बैग",
+    "box": "बॉक्स",
+    "packet": "पैकेट",
+    "plate": "प्लेट",
+    "glass": "ग्लास",
+    "cup": "कप",
+    "lock": "लॉक",
+    "key": "चाबी",
+    # Food & Daily Routine
+    "lunch": "लंच",
+    "dinner": "डिनर",
+    "breakfast": "ब्रेकफ़ास्ट",
+    "snack": "स्नैक",
+    "tea": "चाय",
+    "coffee": "कॉफ़ी",
+    "water": "वॉटर",
+    "juice": "जूस",
+    "milk": "दूध",
+    "cake": "केक",
+    "chocolate": "चॉकलेट",
+    "ice cream": "आइसक्रीम",
+    # Workplace, Business & Money
+    "job": "जॉब",
+    "interview": "इंटरव्यू",
+    "salary": "सैलरी",
+    "bonus": "बोनस",
+    "meeting": "मीटिंग",
+    "presentation": "प्रेजेंटेशन",
+    "project": "प्रोजेक्ट",
+    "target": "टारगेट",
+    "client": "क्लाइंट",
+    "service": "सर्विस",
+    "order": "ऑर्डर",
+    "delivery": "डिलीवरी",
+    "money": "मनी",
+    "cash": "कैश",
+    "bill": "बिल",
+    "card": "कार्ड",
+    "manager": "मैनेजर",
+    "boss": "बॉस",
+    "staff": "स्टाफ",
+    "sir": "सर",
+    "madam": "मैडम",
+    "police": "पुलिस",
+    "company": "कंपनी",
+    "business": "बिजनेस",
+    "contract": "कॉन्ट्रैक्ट",
+    "deal": "डील",
+    "offer": "ऑफर",
+    "shift": "शिफ्ट",
+    # Entertainment & Sports
+    "game": "गेम",
+    "match": "मैच",
+    "team": "टीम",
+    "player": "प्लेयर",
+    "coach": "कोच",
+    "ground": "ग्राउंड",
+    "party": "पार्टी",
+    "club": "क्लब",
+    "song": "गाना",
+    "music": "म्यूज़िक",
+    "dance": "डांस",
+    # Emotions, Conversational Words & Slang
+    "problem": "प्रॉब्लम",
+    "tension": "टेंशन",
+    "issue": "इश्यू",
+    "idea": "आइडिया",
+    "plan": "प्लान",
+    "secret": "सीक्रेट",
+    "surprise": "सरप्राइज़",
+    "gift": "गिफ्ट",
+    "ticket": "टिकट",
+    "help": "हेल्प",
+    "please": "प्लीज़",
+    "thanks": "थैंक्स",
+    "thank you": "थैंक यू",
+    "sorry": "सॉरी",
+    "hello": "हैलो",
+    "hi": "हाय",
+    "bye": "बाय",
+    "goodbye": "गुडबाय",
+    "ok": "ओके",
+    "okay": "ओके",
+    "yes": "यस",
+    "no": "नो",
+    "sure": "श्योर",
+    "fine": "फाइन",
+    "cool": "कूल",
+    "super": "सुपर",
+    "ready": "रेडी",
+    "start": "स्टार्ट",
+    "stop": "स्टॉप",
+    "wait": "वेट",
+    "relax": "रिलैक्स",
+    # Common English / Roman Names inside Hindi Scripts
+    "priya": "प्रीया",
+    "supriya": "सुप्रीया",
+    "riya": "रीया",
+    "siya": "सीया",
+    "rahul": "राहुल",
+    "amit": "अमित",
+    "neha": "नेहा",
+    "pooja": "पूजा",
+    "rohit": "रोहित",
+    "vikas": "विकास",
+    "gaurav": "गौरव",
+    "simran": "सिमरन",
+    "anjali": "अंजलि",
+    "karan": "करण",
+    "arjun": "अर्जुन",
+    "raj": "राज",
+    "ravi": "रवि",
+    "sonia": "सोनिया",
+    "mona": "मोना",
+    "tina": "टीना",
+    "anita": "अनिता",
+    "sunita": "सुनीता",
+    "geeta": "गीता",
+    "seema": "सीमा",
+    "rekha": "रेखा",
+    "deepak": "दीपक",
+    "manoj": "मनोज",
+    "sanjay": "संजय",
+    "vijay": "विजय",
+    "ajay": "अजय",
+}
+
+
 def prepare_reference_audio(audio_path: str, temp_dir: Path) -> str:
-    """Converts reference audio to clean 24kHz mono WAV for XTTS conditioning."""
+    """Converts reference audio to clean 24kHz mono WAV with silence trimmed and loudnorm for optimal XTTS conditioning."""
     src_path = Path(audio_path)
     if not src_path.exists():
         raise FileNotFoundError(f"Reference voice audio file not found: {audio_path}")
@@ -345,6 +675,7 @@ def prepare_reference_audio(audio_path: str, temp_dir: Path) -> str:
         FFMPEG_BIN,
         "-y",
         "-i", str(src_path),
+        "-af", "silenceremove=start_periods=1:start_duration=0.05:start_threshold=-40dB,areverse,silenceremove=start_periods=1:start_duration=0.05:start_threshold=-40dB,areverse,loudnorm=I=-16:TP=-1.5:LRA=11",
         "-ac", "1",
         "-ar", "24000",
         "-vn",
@@ -357,11 +688,12 @@ def prepare_reference_audio(audio_path: str, temp_dir: Path) -> str:
 
 
 def convert_wav_to_mp3(wav_path: Path, mp3_path: Path):
-    """Uses FFmpeg with libmp3lame to convert WAV to clean 192kbps 44.1kHz MP3 for Filmora."""
+    """Uses FFmpeg with libmp3lame to convert WAV to clean 192kbps 44.1kHz MP3 for Filmora, trimming dead tail air."""
     cmd = [
         FFMPEG_BIN,
         "-y",
         "-i", str(wav_path),
+        "-af", "areverse,silenceremove=start_periods=1:start_duration=0.08:start_threshold=-45dB,areverse",
         "-codec:a", "libmp3lame",
         "-b:a", "192k",
         "-ar", "44100",
@@ -374,7 +706,6 @@ def convert_wav_to_mp3(wav_path: Path, mp3_path: Path):
 
 def save_emotion_voice(audio_path: str, char_dropdown_val: str, new_char_val: str, emotion_key: str):
     """Saves an emotion recording into ./voices/<character>_<emotion>.wav and refreshes character choices."""
-    # Resolve character name
     if char_dropdown_val == NEW_CHAR_OPTION:
         char_name = new_char_val.strip() if new_char_val else ""
     else:
@@ -390,11 +721,12 @@ def save_emotion_voice(audio_path: str, char_dropdown_val: str, new_char_val: st
     dest_filename = f"{safe_char}_{safe_emo}.wav"
     dest_path = VOICES_DIR / dest_filename
 
-    # Standardize to 24000Hz mono PCM WAV via FFmpeg
+    # Standardize to 24000Hz mono PCM WAV with silence removal and loudness normalization
     cmd = [
         FFMPEG_BIN,
         "-y",
         "-i", str(audio_path),
+        "-af", "silenceremove=start_periods=1:start_duration=0.05:start_threshold=-40dB,areverse,silenceremove=start_periods=1:start_duration=0.05:start_threshold=-40dB,areverse,loudnorm=I=-16:TP=-1.5:LRA=11",
         "-ac", "1",
         "-ar", "24000",
         "-vn",
@@ -404,37 +736,146 @@ def save_emotion_voice(audio_path: str, char_dropdown_val: str, new_char_val: st
     if res.returncode != 0:
         raise RuntimeError(f"FFmpeg failed to save voice: {res.stderr}")
 
-    # Format names for UI
     display_char_name = char_name.replace("_", " ").replace("-", " ").strip().title()
     formatted_main_label = format_voice_file_label(dest_filename)
 
-    # Refresh dropdown choices
     updated_main_voices = get_available_voices()
     updated_char_choices = get_character_dropdown_choices()
     updated_status = get_character_status_markdown(display_char_name)
 
-    # Auto-advance to the next unrecorded emotion
     next_emotion = get_next_unrecorded_emotion(display_char_name, safe_emo)
     next_data = EMOTIONS.get(next_emotion, EMOTIONS["neutral"])
 
     success_msg = (
-        f"✅ **Saved successfully!** File: `voices/{dest_filename}`\n\n"
+        f"✅ **Saved '{dest_filename}' successfully!**\n\n"
         f"Character **{display_char_name}** now has the **{EMOTIONS[safe_emo]['title']}** "
-        f"emotion ready. It has been automatically selected in the Voice Type dropdown above!"
+        f"emotion ready. It has been automatically selected in the Voice dropdown above!"
     )
 
     return (
         gr.Dropdown(choices=updated_main_voices, value=formatted_main_label),  # 1. Main voice dropdown
-        gr.Dropdown(choices=updated_char_choices, value=display_char_name),    # 2. Character dropdown (locks to character)
-        gr.Textbox(visible=False, value=display_char_name),                   # 3. New character textbox (hidden)
+        gr.Dropdown(choices=updated_char_choices, value=display_char_name),    # 2. Character dropdown
+        gr.Textbox(visible=False, value=display_char_name),                   # 3. New character textbox
         updated_status,                                                       # 4. Status badges
         gr.Dropdown(choices=EMOTION_CHOICES, value=next_emotion),             # 5. Emotion selector auto-advances
         next_data["tip"],                                                     # 6. Vocal coach tip for next emotion
         next_data["hindi"],                                                   # 7. Hindi script for next emotion
         next_data["english"],                                                 # 8. English script for next emotion
         success_msg,                                                          # 9. Success banner
-        None,                                                                 # 10. Clear audio recorder for next take
+        None,                                                                 # 10. Clear audio recorder
     )
+
+
+# Root Hindi verbs that must preserve their native spelling
+PROTECTED_HINDI_VERBS = {"किया", "दिया", "लिया", "पिया", "जिया", "सिया"}
+
+
+def preprocess_script_text(text: str, lang_code: str) -> str:
+    """Comprehensive linguistic & phonetic pre-processing engine:
+    1. Strips invisible formatting & zero-width noise (ZWJ, ZWNJ, BOM).
+    2. Transliterates common English / Hinglish loanwords into clean Devanagari.
+    3. Normalizes Hindi numerals, fractions, decimals, clock times, percentages, and currencies.
+    4. Resolves BPE tokenization pitfalls for ALL Devanagari conjuncts & names (प्रिया -> प्रीया, शुक्रिया -> शुक्रीया).
+    5. Resolves greedy matra collapse on feminine plurals (कहानियां -> कहानीयां, गाड़ियां -> गाड़ीयां, रोटियां -> रोटीयां).
+    6. Normalizes Chandrabindu (ँ) to Anusvara (ं) to leverage fused subwords (हँसना -> हंसना).
+    7. Cleans unhandled Nukta characters and Visarga breaks (दुःख -> दुख, स्वतः -> स्वत).
+    8. Unifies hyphens in reduplicated words (गरमा-गरम -> गरमा गरम, धीरे-धीरे -> धीरे धीरे).
+    9. Ensures clean punctuation spacing for breath-aligned sentence segmentation.
+    """
+    text = text.strip()
+
+    if lang_code == "hi":
+        # 1. Strip invisible Unicode junk (ZWJ, ZWNJ, ZWSP, BOM, soft hyphen)
+        text = re.sub(r"[\u200b-\u200f\ufeff\u00ad]", "", text)
+
+        # 2. Convert Devanagari numerals (०-९) to standard digits (0-9)
+        text = text.translate(str.maketrans("०१२३४५६७८९", "0123456789"))
+
+        # 3. Transliterate English loanwords into clean Devanagari
+        for en_word, hi_word in HINDI_LOANWORDS.items():
+            text = re.sub(rf"\b{re.escape(en_word)}\b", hi_word, text, flags=re.IGNORECASE)
+
+        # 4. Clock / Time format (e.g., '1:30' or '10:00 बजे' -> 'एक बजकर तीस मिनट' / 'दस बजे')
+        def _time_repl(m):
+            hr, mn = int(m.group(1)), int(m.group(2))
+            if mn == 0:
+                return f"{hindi_num2words(hr)} बजे "
+            return f"{hindi_num2words(hr)} बजकर {hindi_num2words(mn)} मिनट "
+        text = re.sub(r"\b(\d{1,2}):(\d{2})(?:\s*बजे)?", _time_repl, text)
+
+        # 5. Common fractions & decimals
+        text = re.sub(r"\b1/2\b", "आधा", text)
+        text = re.sub(r"\b1/4\b", "एक चौथाई", text)
+        text = re.sub(r"\b3/4\b", "तीन चौथाई", text)
+        text = re.sub(r"\b1\.5\b", "डेढ़", text)
+        text = re.sub(r"\b2\.5\b", "ढाई", text)
+
+        # 6. Currency symbols and percentages
+        text = re.sub(r"₹\s*(\d+)", r"\1 रुपये", text)
+        text = re.sub(r"\$\s*(\d+)", r"\1 डॉलर", text)
+        text = re.sub(r"(\d+)\s*%", r"\1 प्रतिशत", text)
+
+        # 7. Pre-expand standalone numbers into spoken Hindi words
+        def _replace_num(match):
+            try:
+                return hindi_num2words(int(match.group(0)))
+            except Exception:
+                return match.group(0)
+        text = re.sub(r"\b\d+\b", _replace_num, text)
+
+        # 8. Chandrabindu (ँ) to Anusvara (ं) - enables XTTS pre-fused subwords (हँसना -> हंसना, गाँव -> गांव)
+        text = text.replace("ँ", "ं")
+
+        # 9. Visarga (ः) cleanup - avoids mid-word tokenization breaks (दुःख -> दुख, स्वतः -> स्वत)
+        text = text.replace("दुःख", "दुख").replace("दु:ख", "दुख")
+        text = re.sub(r"([क-ह])ः", r"\1", text)
+
+        # 10. Nukta normalization for characters that lack native pre-fused subwords in XTTS
+        text = re.sub(r"क़", "क", text)
+        text = re.sub(r"ख़", "ख", text)
+        text = re.sub(r"ग़", "ग", text)
+        text = re.sub(r"ज़ि", "जि", text)
+        text = re.sub(r"फ़ि", "फि", text)
+        text = re.sub(r"([क-ह])ाफ़\b", r"\1ाफ", text)
+
+        # 11. Hyphens between Devanagari reduplicated words (धीरे-धीरे -> धीरे धीरे, गरमा-गरम -> गरमा गरम)
+        text = re.sub(r"([क-ह]़?[\u093e-\u094c]?)-([क-ह])", r"\1 \2", text)
+
+        # 12. Universal 'िया' / 'ियों' / 'ियां' / 'िए' normalization
+        # Resolves tokenization breaks across names, conjuncts and feminine plurals
+        def _iya_repl(m):
+            full = m.group(0)
+            if full in PROTECTED_HINDI_VERBS:
+                return full
+            prefix = m.group(1)
+            suffix = m.group(2)
+            return prefix + "ी" + suffix
+
+        iya_pattern = r"([क-ह]़?(?:्[क-ह]़?)*)ि(य[ाोे][ंँ]?)"
+        text = re.sub(iya_pattern, _iya_repl, text)
+
+        # 13. Dramatic pause normalization (... or -- to clean clause boundaries)
+        text = re.sub(r"\.{3,}", "। ", text)
+        text = re.sub(r"--+", ", ", text)
+        text = text.replace("॥", "।")
+
+        # 14. Ensure sentence terminators have trailing spaces for clean sentence segmentation
+        text = re.sub(r"([।!?])([^\s])", r"\1 \2", text)
+        text = re.sub(r"(\.)([^\s\d])", r"\1 \2", text)
+
+        # 15. Collapse excessive whitespace
+        text = re.sub(r"\s+", " ", text).strip()
+
+    else:
+        # English text cleaning
+        text = re.sub(r"[\u200b-\u200f\ufeff\u00ad]", "", text)
+        text = re.sub(r"\$\s*(\d+)", r"\1 dollars", text)
+        text = re.sub(r"(\d+)\s*%", r"\1 percent", text)
+        text = re.sub(r"\.{3,}", ". ", text)
+        text = re.sub(r"--+", ", ", text)
+        text = re.sub(r"\s+", " ", text).strip()
+
+    return text
 
 
 def generate_voiceover(script_text, voice_choice, custom_upload, language_label, speed):
@@ -444,6 +885,7 @@ def generate_voiceover(script_text, voice_choice, custom_upload, language_label,
         raise gr.Error("Please select a character voice.")
 
     lang_code = "hi" if "Hindi" in language_label else "en"
+    processed_text = preprocess_script_text(script_text, lang_code)
     timestamp = time.strftime("%Y%m%d_%H%M%S")
 
     # Extract clean file prefix
@@ -479,26 +921,54 @@ def generate_voiceover(script_text, voice_choice, custom_upload, language_label,
         print(f"Generating audio for language: {lang_code}, voice: {voice_choice}, speed: {speed}...")
         start_time = time.time()
 
-        # Synthesize speech via XTTS-v2
-        if speaker_wav:
-            tts.tts_to_file(
-                text=script_text.strip(),
-                speaker_wav=speaker_wav,
-                language=lang_code,
-                speed=float(speed),
-                file_path=str(temp_wav),
-            )
-        else:
-            tts.tts_to_file(
-                text=script_text.strip(),
-                speaker=speaker_name,
-                language=lang_code,
-                speed=float(speed),
-                file_path=str(temp_wav),
-            )
+        # Split into sentences for clean breathing and alignment
+        sentences = tts.synthesizer.split_into_sentences(processed_text, lang_code)
+        sentences = [s.strip() for s in sentences if s and s.strip()]
+        if not sentences:
+            sentences = [processed_text]
+
+        sr = 24000
+        # 280ms breath pause between sentences for realistic storytelling cadence
+        pause_samples = int(sr * 0.28)
+        pause_array = np.zeros(pause_samples, dtype=np.float32)
+
+        def trim_tail_silence(raw_wav, thresh=0.015, pad_ms=60):
+            arr = np.array(raw_wav, dtype=np.float32)
+            active = np.where(np.abs(arr) > thresh)[0]
+            if len(active) > 0:
+                end = min(len(arr), active[-1] + int(sr * pad_ms / 1000))
+                return arr[:end]
+            return arr
+
+        combined_audio = []
+        for idx, sen in enumerate(sentences):
+            if speaker_wav:
+                wav_chunk = tts.tts(
+                    text=sen,
+                    speaker_wav=speaker_wav,
+                    language=lang_code,
+                    speed=float(speed),
+                    split_sentences=False,
+                )
+            else:
+                wav_chunk = tts.tts(
+                    text=sen,
+                    speaker=speaker_name,
+                    language=lang_code,
+                    speed=float(speed),
+                    split_sentences=False,
+                )
+
+            trimmed_chunk = trim_tail_silence(wav_chunk)
+            combined_audio.append(trimmed_chunk)
+            if idx < len(sentences) - 1:
+                combined_audio.append(pause_array)
+
+        full_waveform = np.concatenate(combined_audio)
+        sf.write(str(temp_wav), full_waveform, sr)
 
         duration = time.time() - start_time
-        print(f"Synthesis completed in {duration:.1f}s. Converting to MP3...")
+        print(f"Synthesis completed in {duration:.1f}s. Converting to Filmora MP3...")
 
     # Convert to Filmora-ready 192kbps MP3
     convert_wav_to_mp3(temp_wav, final_mp3)
@@ -509,14 +979,13 @@ def generate_voiceover(script_text, voice_choice, custom_upload, language_label,
 
 
 # ---------------------------------------------------------
-# 3. Gradio Web Interface
+# 3. Gradio Web Interface (Optimized Tailwind Slate / Sky Design)
 # ---------------------------------------------------------
 existing_characters = get_existing_characters()
 init_char_choices = get_character_dropdown_choices()
 init_char_value = existing_characters[0] if existing_characters else NEW_CHAR_OPTION
 init_new_char_visible = (init_char_value == NEW_CHAR_OPTION)
 
-# Determine initial emotion
 if existing_characters:
     init_emotion = get_next_unrecorded_emotion(existing_characters[0], "neutral")
 else:
@@ -524,51 +993,134 @@ else:
 
 init_emotion_data = EMOTIONS[init_emotion]
 
+CUSTOM_CSS = """
+/* Calm Tailwind Slate & Sky Theme */
+.gradio-container {
+    max-width: 1400px !important;
+    margin: 0 auto !important;
+    padding-top: 1rem !important;
+}
+
+/* Header subtle card */
+.header-card {
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 18px 24px;
+    margin-bottom: 20px;
+}
+
+/* Dedicated Voice Studio Drawer */
+.studio-drawer {
+    background: #0f172a !important;
+    border: 1px solid #38bdf8 !important;
+    border-radius: 14px !important;
+    padding: 22px !important;
+    margin-top: 14px !important;
+    margin-bottom: 20px !important;
+    box-shadow: 0 10px 30px -5px rgba(2, 132, 199, 0.15) !important;
+}
+
+/* Button hover polish */
+button.primary {
+    background: #0284c7 !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    border-radius: 10px !important;
+}
+button.primary:hover {
+    background: #0369a1 !important;
+}
+"""
+
+TAILWIND_THEME = gr.themes.Soft(
+    primary_hue=gr.themes.colors.sky,
+    secondary_hue=gr.themes.colors.slate,
+    neutral_hue=gr.themes.colors.slate,
+    font=[gr.themes.GoogleFont("Inter"), "ui-sans-serif", "system-ui", "sans-serif"],
+).set(
+    body_background_fill="#0b0f19",
+    body_background_fill_dark="#0b0f19",
+    block_background_fill="#111827",
+    block_background_fill_dark="#111827",
+    block_border_color="#1f2937",
+    block_border_color_dark="#1f2937",
+    block_label_text_color="#94a3b8",
+    block_label_text_color_dark="#94a3b8",
+    input_background_fill="#0f172a",
+    input_background_fill_dark="#0f172a",
+    input_border_color="#334155",
+    input_border_color_dark="#334155",
+    button_primary_background_fill="#0284c7",
+    button_primary_background_fill_dark="#0284c7",
+    button_primary_background_fill_hover="#0369a1",
+    button_primary_background_fill_hover_dark="#0369a1",
+    button_primary_text_color="#ffffff",
+    button_secondary_background_fill="#1e293b",
+    button_secondary_background_fill_dark="#1e293b",
+    button_secondary_border_color="#334155",
+    button_secondary_border_color_dark="#334155",
+    button_secondary_text_color="#e2e8f0",
+)
+
 with gr.Blocks(title="Local Voice Studio") as demo:
-    gr.Markdown("# 🎙️ Local Multi-Character Voice Studio (macOS Apple Silicon)")
-    gr.Markdown(
-        "Generate realistic multi-character voiceovers with **10 distinct emotions** (Sad, Crying, Laughing, "
-        "Angry, Scared, Tired, Excited, etc.) and export **192kbps MP3s ready for Filmora**."
-    )
+    # Top Minimalist Header
+    with gr.Column(elem_classes=["header-card"]):
+        gr.Markdown(
+            "# 🎙️ Local Multi-Character Voice Studio\n"
+            "Generate Hindi & English storytelling dialogue with realistic character emotions and export **192kbps MP3s directly for Filmora**."
+        )
+
+    # State tracking whether the Voice Studio drawer is open or closed
+    studio_is_open = gr.State(False)
 
     with gr.Row():
-        # LEFT COLUMN: Main Controls & Recording Studio
+        # LEFT COLUMN: Clean Homepage Text-to-Speech Core
         with gr.Column(scale=3):
             script_input = gr.Textbox(
                 label="Scene Script / Dialogue (कहानी या संवाद)",
-                placeholder="यहाँ अपनी कहानी या संवाद पेस्ट करें... (Paste your Hindi or English scene script here)",
-                lines=7,
+                placeholder="यहाँ अपनी कहानी या संवाद पेस्ट करें... (Paste your Hindi or English dialogue here)",
+                lines=6,
             )
 
             with gr.Row():
                 voice_dropdown = gr.Dropdown(
                     choices=get_available_voices(),
                     value=get_available_voices()[0] if get_available_voices() else None,
-                    label="Select Character Voice & Emotion (पात्र और भाव चुनें)",
-                    scale=3,
+                    label="Character Voice & Emotion (पात्र और भाव चुनें)",
+                    scale=4,
                 )
-                refresh_btn = gr.Button("🔄 Refresh Voices", scale=1)
+                refresh_btn = gr.Button("🔄 Refresh", scale=1, variant="secondary", size="sm")
+                toggle_studio_btn = gr.Button("🎙️ Clone / Add Voice", scale=2, variant="secondary", size="sm")
 
             with gr.Row():
                 lang_radio = gr.Radio(
                     choices=["Hindi (hi)", "English (en)"],
                     value="Hindi (hi)",
                     label="Spoken Language",
+                    scale=2,
                 )
                 speed_slider = gr.Slider(
-                    minimum=0.75,
-                    maximum=1.30,
+                    minimum=0.50,
+                    maximum=3.00,
                     value=1.0,
                     step=0.05,
                     label="Speaking Speed",
+                    scale=3,
                 )
 
-            # --- MULTI-EMOTION CHARACTER VOICE STUDIO ---
-            with gr.Accordion("🎭 Character Emotion Voice Studio (Record & Align Realistic Emotions)", open=True):
+            # Core Homepage Action Button
+            generate_btn = gr.Button("🚀 Generate MP3 Audio for Filmora", variant="primary", size="lg")
+
+            # --- DEDICATED SEPARATE VOICE CLONING & EMOTION STUDIO DRAWER ---
+            # Kept separate and opened on demand via the '🎙️ Clone / Add Voice' button
+            with gr.Column(visible=False, elem_classes=["studio-drawer"]) as studio_drawer:
+                with gr.Row():
+                    gr.Markdown("### 🎭 Character Emotion Studio (Record & Save Custom Voice)")
+                    close_studio_btn = gr.Button("✕ Close Studio", variant="secondary", size="sm", scale=0)
+
                 gr.Markdown(
-                    "### 💡 Why Record Separate Emotions?\n"
-                    "In storytelling, human voices change drastically when **crying**, **angry**, **laughing**, or **tired**. "
-                    "Select your character below, record each emotion once, and your character will sound authentic in every scene!"
+                    "Select or create your character below, pick an emotion, and read the prompt into the microphone for 10–15s."
                 )
 
                 with gr.Row():
@@ -576,7 +1128,7 @@ with gr.Blocks(title="Local Voice Studio") as demo:
                         choices=init_char_choices,
                         value=init_char_value,
                         label="1. Select Character (पात्र चुनें)",
-                        scale=2,
+                        scale=3,
                     )
                     new_char_input = gr.Textbox(
                         label="New Character Name (नया पात्र नाम)",
@@ -585,7 +1137,7 @@ with gr.Blocks(title="Local Voice Studio") as demo:
                         scale=2,
                     )
                     emotion_selector = gr.Dropdown(
-                        choices=[(data["badge"], key) for key, data in EMOTIONS.items()],
+                        choices=EMOTION_CHOICES,
                         value=init_emotion,
                         label="2. Choose Emotion to Record (भाव चुनें)",
                         scale=3,
@@ -598,7 +1150,7 @@ with gr.Blocks(title="Local Voice Studio") as demo:
                     else "💡 *Type a new Character Name above to start creating your character profile.*"
                 )
 
-                # Vocal Coach Tip & Prompts Card
+                # Vocal Coach Advice
                 vocal_coach_tip = gr.Markdown(init_emotion_data["tip"])
 
                 with gr.Tab("🇮🇳 Hindi Acting Prompt (हिंदी में यह बोलें)"):
@@ -624,29 +1176,54 @@ with gr.Blocks(title="Local Voice Studio") as demo:
                     label="3. Record or Upload Audio Sample (10–20 sec)",
                 )
 
-                save_emotion_btn = gr.Button("💾 Save This Emotion to Character Profile", variant="secondary", size="lg")
+                with gr.Row():
+                    save_emotion_btn = gr.Button("💾 Save This Emotion to Character Profile", variant="primary", scale=2)
+                    done_and_close_btn = gr.Button("✨ Done & Return to Studio", variant="secondary", scale=1)
+
                 save_feedback = gr.Markdown("")
 
-            generate_btn = gr.Button("🚀 Generate MP3 Audio for Filmora", variant="primary", size="lg")
-
-        # RIGHT COLUMN: Audio Player & Timeline Export
+        # RIGHT COLUMN: Audio Player, Direct Download & Tips
         with gr.Column(scale=2):
             gr.Markdown("### 🎧 Voiceover Preview & Filmora Export")
             audio_player = gr.Audio(label="Preview Audio", type="filepath")
             download_file = gr.File(label="Download 192kbps MP3 for Filmora")
-            status_box = gr.Textbox(label="Status / Generation Log", interactive=False, lines=3)
+            status_box = gr.Textbox(label="Status / Generation Log", interactive=False, lines=2)
 
             gr.Markdown(
                 """
                 ---
                 ### 🎬 Filmora Timeline Storytelling Tips:
-                1. **Pick Character & Emotion**: In the dropdown above, select your character with the matching emotion (e.g. `Gaurav — Crying & Choked`).
-                2. **Dialogue Transitions**: Generate dialogues line-by-line. They will keep the same voice identity with scene-appropriate emotion!
-                3. **Direct Drag**: All audio is saved into `./outputs/` as high-grade **192kbps MP3s**. Drag them straight into your Filmora timeline!
+                1. **Pick Character & Emotion**: Select your character and the matching emotion in the dropdown.
+                2. **Dialogue Transitions**: Generate dialogues beat-by-beat to create authentic emotional transitions.
+                3. **Direct Drag**: All audio is saved into `./outputs/` as clean **192kbps MP3s**. Drag them straight into your Filmora timeline!
                 """
             )
 
     # --- EVENT BINDINGS ---
+    def toggle_studio(is_open):
+        new_state = not is_open
+        btn_text = "✕ Close Voice Studio" if new_state else "🎙️ Clone / Add Voice"
+        return gr.update(visible=new_state), btn_text, new_state
+
+    def close_studio():
+        return gr.update(visible=False), "🎙️ Clone / Add Voice", False
+
+    toggle_studio_btn.click(
+        fn=toggle_studio,
+        inputs=studio_is_open,
+        outputs=[studio_drawer, toggle_studio_btn, studio_is_open],
+    )
+
+    close_studio_btn.click(
+        fn=close_studio,
+        outputs=[studio_drawer, toggle_studio_btn, studio_is_open],
+    )
+
+    done_and_close_btn.click(
+        fn=close_studio,
+        outputs=[studio_drawer, toggle_studio_btn, studio_is_open],
+    )
+
     def on_emotion_change(emo_key):
         data = EMOTIONS.get(emo_key, EMOTIONS["neutral"])
         return data["tip"], data["hindi"], data["english"]
@@ -728,4 +1305,4 @@ with gr.Blocks(title="Local Voice Studio") as demo:
     )
 
 if __name__ == "__main__":
-    demo.launch(server_name="127.0.0.1", server_port=7860, inbrowser=True, theme=gr.themes.Soft())
+    demo.launch(server_name="127.0.0.1", server_port=7860, inbrowser=True, theme=TAILWIND_THEME, css=CUSTOM_CSS)

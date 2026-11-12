@@ -52,17 +52,17 @@ In realistic storytelling and film editing, a human character's voice changes co
 ### How XTTS-v2 Emotion Conditioning Works:
 XTTS-v2 extracts the pitch dynamics, formant contours, and vocal energy from your 10–15s reference sample. By recording separate emotional samples for your character (e.g. `gaurav_sad.wav`, `gaurav_angry.wav`), XTTS-v2 synthesizes your dialogue with that **exact emotional prosody** while preserving your character's voice identity.
 
-### How to Create an Emotional Character Profile (Zero-Typo Workflow):
-1. In the Web UI, open **🎭 Character Emotion Voice Studio**.
-2. **For First Emotion / New Character**:
-   - Choose `➕ [Create New Character...]` in the **Select Character** dropdown.
-   - Enter your character's name once (e.g. `Gaurav`, `Mohan`, `Dadi Ji`).
-3. **For All Subsequent Emotions**:
-   - **Simply select your Character from the dropdown!** You never have to re-type the name, preventing typos, misspellings, or inconsistent filenames.
-4. The studio **automatically advances** to your character's next unrecorded emotion!
-5. Read the corresponding **Vocal Coach Tip** and **Acting Script** into the microphone for 10–15 seconds.
-6. Click **💾 Save This Emotion to Character Profile**.
-7. The app normalizes the audio to 24kHz mono PCM WAV, saves it as `voices/<character>_<emotion>.wav`, updates the emotion badges, locks onto your character, and automatically cues up the next emotion for you to record!
+### How to Create an Emotional Character Profile (Clean On-Demand Workflow):
+1. In the Web UI, click the **`🎙️ Clone / Add Voice`** button next to the voice dropdown.
+2. The **🎭 Character Emotion Studio** smoothly expands on demand:
+   - **For a New Character**: Choose `➕ [Create New Character...]` and enter the name once (e.g. `Gaurav`, `Mohan`, `Dadi Ji`).
+   - **For Existing Characters**: Simply select their name from the dropdown (zero typos, zero re-typing!).
+3. Read the corresponding **Vocal Coach Tip** and **Acting Script** into the microphone for 10–15 seconds.
+4. Click **💾 Save This Emotion to Character Profile**:
+   - The audio is normalized to 24kHz mono PCM WAV and saved into `voices/<character>_<emotion>.wav`.
+   - Your character's emotion badges update with a green checkmark (`✅`).
+   - The studio automatically cues up the next unrecorded emotion!
+5. Click **`✨ Done & Return to Studio`** (or `✕ Close Studio`) to return to the clean homepage and generate speech!
 
 ---
 
@@ -174,3 +174,49 @@ Below are the 10 supported acting emotions. Use these exact acting prompts when 
 3. **Filmora Timeline**:
    - Drag the `.mp3` files in sequence directly into the audio track of your Filmora project.
    - The character maintains the exact same voice identity across the entire film while delivering authentic, realistic emotions for each scene!
+
+---
+
+## ⚡ 6. Universal Hindi & Devanagari Linguistic Normalization Engine
+
+To eliminate mispronunciations, tokenization stutter, and alignment glitches across all Hindi texts, `app.py` runs a 10-layer pre-processing engine:
+
+1. **Universal Suffix & Conjunct Normalization (`-िया`, `-ियों`, `-ियां`)**:
+   - In XTTS-v2's 515-token Devanagari vocabulary, the subword `िया` is an isolated suffix morpheme. When preceded by any conjunct (`प्र`, `क्र`, `त्र`) or feminine plural stem (`कहानियां`, `गाड़ियां`, `रोटियां`, `बेटियां`, `छुट्टियां`), XTTS treats the stem as a bare consonant and stumbles.
+   - The engine automatically maps:
+     - Names & Conjuncts: `प्रिया` ➔ `प्रीया`, `सुप्रिया` ➔ `सुप्रीया`, `क्रिया` ➔ `क्रीया`, `शुक्रिया` ➔ `शुक्रीया`, `प्रतिक्रिया` ➔ `प्रतिक्रीया`, `स्त्रियां` ➔ `स्त्रीयां`.
+     - Feminine Plurals: `कहानियां` ➔ `कहानीयां`, `गाड़ियां` ➔ `गाड़ीयां`, `रोटियां` ➔ `रोटीयां`, `घड़ियां` ➔ `घड़ीयां`, `छुट्टियां` ➔ `छुट्टीयां`, `बेटियां` ➔ `बेटीयां`, `खुशियां` ➔ `खुशीयां`.
+   - Core root verbs (`किया`, `दिया`, `लिया`, `पिया`, `जिया`, `सिया`) are protected.
+
+2. **Nukta Normalization (`़` - U+093C)**:
+   - Standalone nuktas force XTTS into single-letter token splits (`ख़ास` ➔ `['ख', '़', 'ा', 'स']`), causing clicks and hesitation.
+   - The engine automatically normalizes: `क़` ➔ `क`, `ख़` ➔ `ख`, `ग़` ➔ `ग`, `ज़ि` ➔ `जि` (`ज़िंदगी` ➔ `जिंदगी`), `फ़ि` ➔ `फि` (`फ़िक्र` ➔ `फिक्र`), `साफ़` ➔ `साफ`.
+
+3. **Chandrabindu (`ँ`) to Anusvara (`ं`)**:
+   - `ँ` is an isolated single token in XTTS (e.g. `हँसना` ➔ `['ह', 'ँ', 'स', 'ना']`).
+   - Normalizing to `ं` allows XTTS to use native pre-fused subwords like `ंस` (`हंसना` ➔ `['ह', 'ंस', 'ना']`), `आंखें`, `गांव`, `चांद`.
+
+4. **Visarga (`ः`) Cleanup**:
+   - Eliminates mid-word tokenization breaks (`दुःख` / `दु:ख` ➔ `दुख`, `स्वतः` ➔ `स्वत`, `क्रमशः` ➔ `क्रमश`).
+
+5. **Invisible Unicode & Formatting Stripping**:
+   - Removes zero-width non-joiners (`\u200c`), zero-width joiners (`\u200d`), zero-width spaces (`\u200b`), and BOMs (`\ufeff`) that frequently corrupt pasted text from WhatsApp, Word, or web pages.
+
+6. **Numbers, Times, Percentages, Fractions & Currency**:
+   - Devanagari numerals (`०-९`) ➔ `0-9`
+   - Numbers ➔ Spoken Hindi words (`1` ➔ `एक`, `100` ➔ `एक सौ`)
+   - Clock times: `1:30` / `10:00 बजे` ➔ `एक बजकर तीस मिनट` / `दस बजे`
+   - Fractions: `1/2` ➔ `आधा`, `1/4` ➔ `एक चौथाई`, `1.5` ➔ `डेढ़`, `2.5` ➔ `ढाई`
+   - Currencies & Percentages: `₹500` ➔ `पांच सौ रुपये`, `25%` ➔ `पच्चीस प्रतिशत`
+
+7. **Hyphenated Reduplicated Words**:
+   - Unifies hyphenated word pairs (`गरमा-गरम` ➔ `गरमा गरम`, `धीरे-धीरे` ➔ `धीरे धीरे`, `साथ-साथ` ➔ `साथ साथ`) to eliminate mid-phrase pauses.
+
+8. **Automatic Hinglish Loanword Transliteration (150+ words)**:
+   - Everyday English words written in Latin characters (`desk`, `tiffin`, `office`, `hospital`, `doctor`, `school`, `room`, `phone`, `call`, `car`, `train`, etc.) are automatically converted to clean Devanagari (`डेस्क`, `टिफिन`, `ऑफिस`, `अस्पताल`).
+
+9. **Natural Storytelling Breath Cadence**:
+   - Sentences are segmented beat-by-beat using Purna Viram (`।`) and punctuation boundaries. Trailing vocoder air is trimmed from each clause and combined with a realistic 280ms breathing pause for tight Filmora pacing.
+
+10. **Broadcast Audio Normalization**:
+    - Reference voice recordings and final MP3 exports undergo automated silence trimming and EBU R128 loudness normalization (`-16 LUFS`), ensuring crystal-clear voice cloning and zero dead air.

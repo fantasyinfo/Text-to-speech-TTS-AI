@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updated_at": "2026-11-12T22:50:53.923310",
+  "updated_at": "2026-11-13T13:03:03.436084",
   "characters": {
     "test01": {
       "id": "test01",
@@ -71,8 +71,8 @@
     "gaurav_sharma": {
       "id": "gaurav_sharma",
       "name": "Gaurav Sharma",
-      "age": 30,
-      "age_group": "adult",
+      "age": 65,
+      "age_group": "elder",
       "gender": "male",
       "description": "Adult Male",
       "takes": {
@@ -114,7 +114,7 @@
         }
       },
       "created_at": "2026-11-12T22:47:15.723595",
-      "updated_at": "2026-11-12T22:50:53.923264"
+      "updated_at": "2026-11-13T13:03:03.435928"
     }
   }
 }

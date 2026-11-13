@@ -15,8 +15,8 @@
   },
   "gaurav_sharma": {
     "name": "Gaurav Sharma",
-    "age": 65,
-    "age_group": "elder",
+    "age": 32,
+    "age_group": "adult",
     "gender": "male",
     "description": "Adult Male"
   }

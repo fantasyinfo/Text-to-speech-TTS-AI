@@ -487,6 +487,7 @@ export default function App() {
           {currentTab === 'studio' && (
             <StudioView
               voices={voices}
+              characters={characters}
               activeProject={activeProject}
               onGenerateAudio={handleGenerateAudio}
               isGenerating={isJobRunning}

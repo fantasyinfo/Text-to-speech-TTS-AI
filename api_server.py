@@ -102,6 +102,7 @@ class GenerateAudioRequest(BaseModel):
     emotion: Optional[str] = "neutral"
     remove_silence: Optional[bool] = False
     scenes: Optional[List[Dict[str, Any]]] = None
+    voice_tone: Optional[str] = "auto"
 
 
 class UpdateCharacterMetadataRequest(BaseModel):
@@ -395,8 +396,8 @@ def get_voice_sample(filename: str):
 
 @app.get("/api/voices")
 def list_all_voices():
-    """Returns formatted list of preset and custom voices for the studio dropdown."""
-    return {"voices": get_available_voices(), "presets": PRESET_VOICES}
+    """Returns custom character voices (predefined presets removed per user request)."""
+    return {"voices": get_available_voices(), "presets": {}}
 
 
 @app.post("/api/characters/record-emotion")
@@ -538,6 +539,7 @@ def api_create_job(req: GenerateAudioRequest):
         clip_title=req.clip_title or "",
         emotion=req.emotion or "neutral",
         remove_silence=bool(req.remove_silence),
+        voice_tone=req.voice_tone or "auto",
     )
     job = get_job_status(job_id)
     return {"success": True, "job_id": job_id, "job": job}

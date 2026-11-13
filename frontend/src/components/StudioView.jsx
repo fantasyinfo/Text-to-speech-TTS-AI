@@ -51,7 +51,8 @@ const DEFAULT_SAMPLE_SCRIPT = `[Narrator – Calm, descriptive, storytelling]
 लेकिन जब payment करने की बारी आई, तो bill निकला ₹99!`
 
 export default function StudioView({
-  voices,
+  voices = [],
+  characters = [],
   activeProject,
   onGenerateAudio,
   isGenerating,
@@ -68,6 +69,7 @@ export default function StudioView({
   const [scriptText, setScriptText] = useState(DEFAULT_SAMPLE_SCRIPT)
   const [editorMode, setEditorMode] = useState('text') // 'text' | 'director'
   const [selectedVoice, setSelectedVoice] = useState(voices[0] || '')
+  const [selectedTone, setSelectedTone] = useState('auto')
   const [selectedEmotion, setSelectedEmotion] = useState('storytelling')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [emotionSearch, setEmotionSearch] = useState('')
@@ -76,6 +78,45 @@ export default function StudioView({
   const [language, setLanguage] = useState('hi')
   const [speed, setSpeed] = useState(1.0)
   const [clipTitle, setClipTitle] = useState('')
+
+  // Helper to extract clean character name from custom voice label
+  const getCharName = (v) => {
+    if (!v) return ''
+    const m = v.match(/Custom:\s*([^(—\[]+)/)
+    if (m) return m[1].trim()
+    return v.replace(/🎭|Custom:|\(.*?\)/g, '').trim()
+  }
+
+  // Active Character Profile Object & available recorded takes
+  const activeCharObj = useMemo(() => {
+    const name = getCharName(selectedVoice)
+    if (!characters || characters.length === 0) return null
+    return (
+      characters.find(
+        (c) => c.name.toLowerCase() === name.toLowerCase() || c.id.toLowerCase() === name.toLowerCase()
+      ) || characters[0]
+    )
+  }, [characters, selectedVoice])
+
+  const availableTakes = useMemo(() => {
+    if (!activeCharObj || !activeCharObj.emotions) {
+      return ['neutral']
+    }
+    const rec = Object.entries(activeCharObj.emotions)
+      .filter(([_, data]) => data.recorded)
+      .map(([key]) => key)
+    return rec.length > 0 ? rec : ['neutral']
+  }, [activeCharObj])
+
+  const TAKE_LABELS = {
+    auto: '⚡ Auto (Match Scene Emotion)',
+    neutral: '🎙️ Base Voice (Neutral)',
+    happy: '😊 Happy Take',
+    sad: '😢 Sad Take',
+    angry: '😡 Angry Take',
+    dramatic: '🎭 Dramatic Take',
+    whisper: '🤫 Whispering Take',
+  }
 
   // Multi-scene parsed list
   const [scenes, setScenes] = useState(() =>
@@ -171,6 +212,14 @@ export default function StudioView({
     })
   }
 
+  const handleSceneToneChange = (idx, newTone) => {
+    setScenes((prev) => {
+      const updated = [...prev]
+      updated[idx] = { ...updated[idx], voice_tone: newTone }
+      return updated
+    })
+  }
+
   const handleAddScene = () => {
     setScenes((prev) => [
       ...prev,
@@ -181,6 +230,7 @@ export default function StudioView({
         speakerRaw: '',
         emotionRaw: selectedEmotion,
         voice: selectedVoice || voices[0] || '',
+        voice_tone: selectedTone || 'auto',
         emotion: selectedEmotion,
         text: '',
       },
@@ -231,7 +281,8 @@ export default function StudioView({
     if (!scene.text?.trim()) return
     onGenerateAudio({
       script_text: scene.text,
-      voice_choice: scene.voice || selectedVoice || voices[0],
+      voice_choice: scene.voice || selectedVoice || voices[0] || (characters[0] ? characters[0].name : ''),
+      voice_tone: scene.voice_tone || selectedTone || 'auto',
       language,
       speed,
       project_name: activeProject,
@@ -248,7 +299,8 @@ export default function StudioView({
 
     onGenerateAudio({
       script_text: textToSubmit,
-      voice_choice: selectedVoice || voices[0],
+      voice_choice: selectedVoice || voices[0] || (characters[0] ? characters[0].name : ''),
+      voice_tone: selectedTone,
       language,
       speed,
       project_name: activeProject,
@@ -444,7 +496,25 @@ export default function StudioView({
                               >
                                 {voices.map((v) => (
                                   <option key={v} value={v} className="bg-slate-900 text-white">
-                                    {v}
+                                    {v.replace('🎭 Custom: ', '')}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            {/* Voice Tone Selector for this scene */}
+                            <div className="flex items-center space-x-1 bg-slate-900 border border-slate-800 px-2 py-1 rounded-lg">
+                              <span className="text-[10px] text-slate-400 font-mono">Tone:</span>
+                              <select
+                                value={scene.voice_tone || 'auto'}
+                                onChange={(e) => handleSceneToneChange(idx, e.target.value)}
+                                className="bg-transparent text-xs text-sky-300 font-medium outline-none cursor-pointer max-w-[130px] truncate"
+                              >
+                                <option value="auto" className="bg-slate-900 text-white">⚡ Auto (Emotion)</option>
+                                <option value="neutral" className="bg-slate-900 text-white">Base Voice</option>
+                                {['happy', 'sad', 'angry', 'dramatic', 'whisper'].map((take) => (
+                                  <option key={take} value={take} className="bg-slate-900 text-white capitalize">
+                                    {take}
                                   </option>
                                 ))}
                               </select>
@@ -551,9 +621,9 @@ export default function StudioView({
               )}
             </div>
 
-            {/* Scene Title & Character Voice Selector */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Optional Clip Title */}
+            {/* Clip Title, Character Voice & Tone Selector */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* 1. Optional Clip Title */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-300">
                   Take / Scene Title <span className="text-slate-500 font-normal">(Optional)</span>
@@ -567,19 +637,19 @@ export default function StudioView({
                 />
               </div>
 
-              {/* Voice Dropdown */}
+              {/* 2. Character Voice Selector (Custom Characters Only) */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-slate-300">Character Voice</label>
+                  <label className="text-xs font-semibold text-slate-300">1. Character Voice</label>
                   <div className="flex items-center space-x-2">
-                    {selectedVoice?.includes('🎭 Custom:') && onEditVoice && (
+                    {onEditVoice && (
                       <button
                         type="button"
                         onClick={() => onEditVoice(selectedVoice)}
                         className="text-[11px] text-sky-400 hover:text-sky-300 font-medium flex items-center gap-1 transition-colors"
                         title="Edit Character Voice Parameters"
                       >
-                        <Pencil className="w-3 h-3" /> Edit Profile
+                        <Pencil className="w-3 h-3" /> Edit
                       </button>
                     )}
                     <button
@@ -598,7 +668,29 @@ export default function StudioView({
                 >
                   {voices.map((v) => (
                     <option key={v} value={v}>
-                      {v}
+                      {v.replace('🎭 Custom: ', '')}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 3. Voice Tone / Take Selector */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-300">2. Voice Tone / Take</label>
+                  <span className="text-[10px] text-slate-500 font-mono">
+                    {availableTakes.length} recorded take{availableTakes.length === 1 ? '' : 's'}
+                  </span>
+                </div>
+                <select
+                  value={selectedTone}
+                  onChange={(e) => setSelectedTone(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#070b14] border border-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 text-sky-300 font-medium text-xs outline-none cursor-pointer"
+                >
+                  <option value="auto">⚡ Auto (Match Scene Emotion)</option>
+                  {availableTakes.map((take) => (
+                    <option key={take} value={take} className="bg-slate-900 text-white">
+                      {TAKE_LABELS[take] || `Take: ${take}`}
                     </option>
                   ))}
                 </select>

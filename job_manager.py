@@ -30,6 +30,7 @@ def create_synthesis_job(
     clip_title: str = "",
     emotion: str = "neutral",
     remove_silence: bool = False,
+    voice_tone: str = "auto",
 ) -> str:
     """Enqueues a new synthesis job in the background and returns job_id immediately."""
     job_id = f"job_{uuid.uuid4().hex[:10]}"
@@ -53,6 +54,7 @@ def create_synthesis_job(
             "project": project_name,
             "clip_title": clip_title,
             "voice": voice_choice,
+            "voice_tone": voice_tone,
             "emotion": emotion,
             "remove_silence": remove_silence,
             "script_preview": preview,
@@ -72,6 +74,7 @@ def create_synthesis_job(
         clip_title=clip_title,
         emotion=emotion,
         remove_silence=remove_silence,
+        voice_tone=voice_tone,
     )
 
     return job_id
@@ -87,6 +90,7 @@ def _run_job_worker(
     clip_title: str,
     emotion: str = "neutral",
     remove_silence: bool = False,
+    voice_tone: str = "auto",
 ):
     """Worker task executed in background thread."""
     t_start = time.time()
@@ -125,6 +129,7 @@ def _run_job_worker(
             emotion=emotion,
             remove_silence=remove_silence,
             progress_callback=on_progress,
+            voice_tone=voice_tone,
         )
 
         t_end = time.time()

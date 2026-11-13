@@ -593,22 +593,16 @@ def format_voice_file_label(filename: str) -> str:
 
 
 def get_available_voices() -> list[str]:
-    """Combines custom emotion voice files with built-in studio presets, grouped by character."""
+    """Returns clean, short custom character voices without duplicate takes or predefined presets."""
     VOICES_DIR.mkdir(parents=True, exist_ok=True)
-    custom_labels = []
-    custom_files = sorted(
-        [
-            f.name
-            for f in VOICES_DIR.iterdir()
-            if f.is_file() and f.suffix.lower() in {".wav", ".mp3", ".m4a", ".flac", ".ogg"}
-        ]
-    )
-    for cf in custom_files:
-        custom_labels.append(format_voice_file_label(cf))
+    chars = get_existing_characters()
+    labels = []
+    for c in chars:
+        meta = get_character_metadata(c)
+        profile_tag = f"{meta['age_group'].title()} • {meta['gender'].title()}"
+        labels.append(f"🎭 Custom: {c} ({profile_tag})")
 
-    custom_labels.sort()
-    preset_labels = [f"🎙️ Preset: {p}" for p in PRESET_VOICES.keys()]
-    return custom_labels + preset_labels
+    return labels
 
 
 def get_character_status_markdown(character_name: str) -> str:
